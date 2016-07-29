@@ -64,6 +64,6 @@ defmodule NcsaHmac.Authentication do
   end
 
   defp resource_name(opts) do
-    NcsaHmac.Plugs.resource_name(opts)
+    NcsaHmac.Plug.resource_name(opts)
   end
 end

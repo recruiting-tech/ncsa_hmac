@@ -34,7 +34,7 @@ end
 defmodule NcsaHmac.PlugTest do
   use ExUnit.Case, async: true
   use Plug.Test
-  import NcsaHmac.Plugs
+  import NcsaHmac.Plug
 
   @moduletag timeout: 100000000
 
