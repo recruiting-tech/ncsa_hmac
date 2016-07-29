@@ -28,8 +28,14 @@ defmodule NcsaHmac.Authentication do
   end
 
   defp signing_key(conn, opts, auth_id) do
-    signing_key = opts[:signing_key] || :signing_key
-    resource_signing_key = resource(conn, opts, auth_id).signing_key
+    signing_key = case opts[:key_field] do
+      nil -> :signing_key
+      "" -> :signing_key
+      _ -> String.to_atom(opts[:key_field])
+    end
+    key_map = resource(conn, opts, auth_id)
+      |> Map.take([signing_key])
+    resource_signing_key = key_map[signing_key]
     unless resource_signing_key do
       authorization_error "The signature authorization_id does not match any records. auth_id: #{auth_id}"
     end
@@ -52,7 +58,7 @@ defmodule NcsaHmac.Authentication do
     validate_signature(conn, signature, signing_key, valid_algorithm)
   end
 
-  defp validate_signature(conn, signature, signing_key, []) do
+  defp validate_signature(_, signature, _, []) do
     authorization_error "Error: computed signature does not match header signature: #{signature}"
   end
   defp validate_signature(conn, signature, signing_key, algorithm) do
