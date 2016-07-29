@@ -95,7 +95,8 @@ defmodule NcsaHmac.Plug do
   end
 
   defp _load_resource(conn, opts) do
-    action = get_action(conn)
+    # action = get_action(conn)
+    get_action(conn)
     loaded_resource = fetch_resource(conn, opts)
 
     %{conn | assigns: Map.put(conn.assigns, resource_name(opts), loaded_resource)}
@@ -242,17 +243,10 @@ defmodule NcsaHmac.Plug do
 
   defp _load_and_authorize_resource(conn, opts) do
     conn
-    |> Map.put(:skip_canary_handler, true) # skip not_found_handler so auth handler can catch first if needed
     |> load_resource(opts)
-    # |> Map.delete(:skip_canary_handler) # allow auth handling
     |> authorize_resource(opts)
-    # |> maybe_handle_not_found(opts)
     |> purge_resource_if_unauthorized(opts)
   end
-
-  # Only try to handle 404 if the response has not been sent during authorization handling
-  # defp maybe_handle_not_found(conn = %{state: :sent}, _opts), do: conn
-  # defp maybe_handle_not_found(conn, opts), do: handle_not_found(conn, opts)
 
   defp purge_resource_if_unauthorized(conn = %{assigns: %{authorized: true}}, _opts),
     do: conn
@@ -272,38 +266,17 @@ defmodule NcsaHmac.Plug do
     |> case do
       :error ->
         repo.get_by(opts[:model], get_map_args)
-        # |> preload_if_needed(repo, opts)
       {:ok, nil} ->
         repo.get_by(opts[:model], get_map_args)
-        # |> preload_if_needed(repo, opts)
       {:ok, resource} ->
         case (resource.__struct__ == opts[:model]) do
           true  -> # A resource of the type passed as opts[:model] is already loaded; do not clobber it
             resource
           false ->
             repo.get_by(opts[:model], get_map_args)
-            # |> preload_if_needed(repo, opts)
         end
     end
   end
-
-  # defp fetch_all(conn, opts) do
-  #   repo = Application.get_env(:canary, :repo)
-
-  #   conn
-  #   |> Map.fetch(resource_name(opts))
-  #   |> case do # check if a resource is already loaded at the key
-  #     :error ->
-  #       from(m in opts[:model]) |> select([m], m) |> repo.all |> preload_if_needed(repo, opts)
-  #     {:ok, resource} ->
-  #       case (resource.__struct__ == opts[:model]) do
-  #         true  ->
-  #           resource
-  #         false ->
-  #           from(m in opts[:model]) |> select([m], m) |> repo.all |> preload_if_needed(repo, opts)
-  #       end
-  #   end
-  # end
 
   defp get_resource_id(conn, opts) do
     case opts[:id_name] do
@@ -368,29 +341,10 @@ defmodule NcsaHmac.Plug do
     end
   end
 
-  defp preload_if_needed(nil, _repo, _opts) do
-    nil
-  end
-
-  defp preload_if_needed(records, repo, opts) do
-    case opts[:preload] do
-      nil ->
-        records
-      models ->
-        repo.preload(records, models)
-    end
-  end
-
-  # defp handle_unauthorized(conn = %{skip_canary_handler: true}, _opts),
-  #   do: conn
   defp handle_unauthorized(conn = %{assigns: %{authorized: true}}, _opts),
     do: conn
   defp handle_unauthorized(conn = %{assigns: %{authorized: false}}, opts),
     do: apply_error_handler(conn, :unauthorized_handler, opts)
-
-  defp handle_not_found(conn = %{skip_canary_handler: true}, _opts) do
-    conn
-  end
 
   defp handle_not_found(conn, opts) do
     action = get_action(conn)

@@ -70,5 +70,4 @@ defmodule NcsaHmac.Signer do
     {_, json_params} = JSON.encode params
     json_params
   end
-
 end
