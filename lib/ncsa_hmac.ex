@@ -1,2 +1,0 @@
-defmodule NcsaHmac do
-end

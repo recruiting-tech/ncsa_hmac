@@ -3,8 +3,8 @@ defmodule NcsaHmac.Mixfile do
 
   def project do
     [app: :ncsa_hmac,
-     version: "0.1.0",
-     elixir: "~> 1.3",
+     version: release_version,
+     elixir: "~> 1.0",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps()]
@@ -14,7 +14,7 @@ defmodule NcsaHmac.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger]]
+    [applications: [:logger, :ecto, :timex, :json]]
   end
 
   # Dependencies can be Hex packages:
@@ -27,6 +27,17 @@ defmodule NcsaHmac.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    []
+    [
+      {:ecto, ">= 1.1.0"},
+      {:timex, "~> 3.0"},
+      {:json, "~> 0.3.0"},
+      {:plug, "~> 1.0"},
+      {:ex_doc, "~> 0.7", only: :dev},
+    ]
+  end
+
+  defp release_version do
+    version = File.read('RELEASE_VERSION')
+    String.strip(elem(version,1))
   end
 end
