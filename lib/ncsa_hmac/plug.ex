@@ -256,7 +256,7 @@ defmodule NcsaHmac.Plug do
     |> Map.fetch(:ncsa_hmac_action)
     |> case do
       {:ok, action} -> action
-      _             -> conn.private[:ncsa_hmac_action]
+      _             -> conn.private.phoenix_action
     end
   end
 

@@ -46,7 +46,7 @@ defmodule NcsaHmac.PlugTest do
     # when the resource with the id can be fetched
     params = %{"id" => 1}
     conn = conn(:get, "/posts/1", params)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :show)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :show)
     expected = %{conn | assigns: Map.put(conn.assigns, :api_key, %ApiKey{id: 1})}
     assert load_resource(conn, opts) == expected
 
@@ -54,7 +54,7 @@ defmodule NcsaHmac.PlugTest do
     # it does not clobber the old resource
     params = %{"id" => 1}
     conn = conn(:get, "/posts/1", params)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :show)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :show)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 2})
     expected = %{conn | assigns: Map.put(conn.assigns, :api_key, %ApiKey{id: 2})}
     assert load_resource(conn, opts) == expected
@@ -64,7 +64,7 @@ defmodule NcsaHmac.PlugTest do
     # it replaces that resource with the desired resource
     params = %{"id" => 1}
     conn = conn(:get, "/posts/1", params)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :show)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :show)
       |> Plug.Conn.assign(:api_key, %User{id: 2})
 
     expected = %{conn | assigns: Map.put(conn.assigns, :api_key, %ApiKey{id: 1})}
@@ -73,7 +73,7 @@ defmodule NcsaHmac.PlugTest do
     # when the resource with the id cannot be fetched
     params = %{"id" => 3}
     conn = conn(:get, "/posts/1", params)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :show)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :show)
     expected = %{conn | assigns: Map.put(conn.assigns, :api_key, nil)}
     assert load_resource(conn, opts) == expected
   end
@@ -84,7 +84,7 @@ defmodule NcsaHmac.PlugTest do
     # when id param is correct
     params = %{"post_id" => 1}
     conn = conn(:get, "/posts/1", params)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :show)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :show)
     expected = %{conn | assigns: Map.put(conn.assigns, :api_key, %ApiKey{id: 1})}
     assert load_resource(conn, opts) == expected
   end
@@ -95,7 +95,7 @@ defmodule NcsaHmac.PlugTest do
     # when auth_id param is correct
     params = %{"auth_id" => "auth_id1"}
     conn = conn(:get, "/posts/1", params)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :show)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :show)
     expected = %{conn | assigns: Map.put(conn.assigns, :api_key, %ApiKey{id: 1, auth_id: "auth_id1"})}
     assert load_resource(conn, opts) == expected
   end
@@ -106,7 +106,7 @@ defmodule NcsaHmac.PlugTest do
     # when auth_id param is correct
     params = %{"auth_id" => "auth_id11"}
     conn = conn(:get, "/posts/", params)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :show)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :show)
     expected = %{conn | assigns: Map.put(conn.assigns, :api_key, %ApiKey{id: 1, auth_id: "auth_id11", signing_key: "signing_key"})}
     assert load_resource(conn, opts) == expected
   end
@@ -117,7 +117,7 @@ defmodule NcsaHmac.PlugTest do
     # when auth_id param is correct
     params = %{"auth_id" => "auth_id11"}
     conn = conn(:get, "/posts/", params)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :show)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :show)
     expected = %{conn | assigns: Map.put(conn.assigns, :secret_key, %ApiKey{id: 1, auth_id: "auth_id11", signing_key: "signing_key"})}
     assert load_resource(conn, opts) == expected
   end
@@ -133,7 +133,7 @@ defmodule NcsaHmac.PlugTest do
 
   test "it verifies the request signature and authorizes when signature is valid" do
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -146,7 +146,7 @@ defmodule NcsaHmac.PlugTest do
   test "it invalidates the request signature and authorizes when signature is invalid" do
     auth_string = "NCSA.HMAC " <> @key_id <> ":invalid_signature"
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -162,7 +162,7 @@ defmodule NcsaHmac.PlugTest do
   test "it removes the resource when signature is invalid" do
     auth_string = "NCSA.HMAC " <> @key_id <> ":invalid_signature"
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -177,7 +177,7 @@ defmodule NcsaHmac.PlugTest do
   test "it loads and authorizes the resource correctly" do
     opts = [model: ApiKey]
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -189,7 +189,7 @@ defmodule NcsaHmac.PlugTest do
     # when the resource with the id cannot be fetched
     auth_string = "NCSA.HMAC " <> "909090" <> ":" <> "also_the_signature_is_invalid"
     conn = conn(:post, "/api/auth", %{"auth_id" => "909090"})
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
       |> Plug.Conn.assign(:api_key, nil)
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -204,7 +204,7 @@ defmodule NcsaHmac.PlugTest do
   test "it loads and authorizes the resource correctly when using :id_field options" do
     opts = [model: ApiKey, id_name: "auth_id", id_field: "auth_id"]
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -228,7 +228,7 @@ defmodule NcsaHmac.PlugTest do
 
     # when the key_field on the resource is valid
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", slug: "base64_signing_key"})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -250,7 +250,7 @@ defmodule NcsaHmac.PlugTest do
     opts = [model: ApiKey, only: :some_action]
     #when the action is the :only action
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -258,10 +258,21 @@ defmodule NcsaHmac.PlugTest do
     expected = %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
     assert authorize_resource(conn, opts) == expected
 
+    #when the only: action is stored under the :phoenix_action key
+    conn = conn(:post, "/api/auth", @target_body)
+      |> Plug.Conn.put_private(:phoenix_action, :some_action)
+      |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
+      |> Plug.Conn.put_req_header("content-type", @content_type)
+      |> Plug.Conn.put_req_header("date", @date)
+      |> Plug.Conn.put_req_header("authorization", @valid_auth_string)
+    expected = %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
+
+    assert authorize_resource(conn, opts) == expected
+
     #when the action is not the :only action
     conn = conn
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 123})
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_other_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_other_action)
 
     expected = conn
     assert authorize_resource(conn, opts) == expected
@@ -272,7 +283,7 @@ defmodule NcsaHmac.PlugTest do
 
     #when the action is the :only action
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -282,7 +293,7 @@ defmodule NcsaHmac.PlugTest do
 
     #when the action is not the :only action
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_other_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_other_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 123})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -294,7 +305,7 @@ defmodule NcsaHmac.PlugTest do
   test "it skips the plug when both opts[:only] and opts[:except] are specified" do
     opts = [model: ApiKey, only: :some_action, except: :some_other_action]
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_other_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_other_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 123})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -309,7 +320,7 @@ defmodule NcsaHmac.PlugTest do
     opts = [model: ApiKey, except: :some_other_action]
     #when the action is not execepted
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
@@ -322,7 +333,7 @@ defmodule NcsaHmac.PlugTest do
 
     #when the action is execepted
     conn = conn(:post, "/api/auth", @target_body)
-      |> Plug.Conn.put_private(:ncsa_hmac_action, :some_other_action)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_other_action)
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 123})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
