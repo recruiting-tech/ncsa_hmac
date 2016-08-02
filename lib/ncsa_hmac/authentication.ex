@@ -1,8 +1,47 @@
 defmodule NcsaHmac.Authentication do
   alias NcsaHmac.Signer
-
   @authorization_regexp ~r/\w+ ([^:]+):(.+)$/
   @accepted_algorithms [:sha512, :sha384, :sha256]
+
+  @moduledoc """
+  The Authentication module provides functions for validating an HMAC signature on a web request.
+  """
+
+  @doc """
+  Authenticate the header 'Authorization' signature.
+
+  The `authenticate!` method performs several steps first:
+
+  Load the resource with id/auth_id given extracted from the 'Authorization' signature.
+
+  Get the `signing_key` from the resource.
+
+  Determine, which if any of the currently accepted cyptographic algorithms: #{inspect @accepted_algorithms}
+  was used to sign the request.
+
+  Pass the request (conn) to the Signer module to calculate a signature and
+  compare the computed signature to the signature sent with the request.
+  If any of the elements used to compute the signature changed between when the
+  request was signed and received, the `authenticate!` will fail.
+
+  Requests coming in to get authenticated must include the `Date` header field.
+  If the `Date` field is absent, the Signer module will set the `Date` field and
+  the reuqest will never be able to authenticate.
+
+  Required opts:
+
+  * `:model` - Specifies the module name of the model to load resources from
+
+  Optional opts:
+
+  * `:as` - Specifies the `resource_name` to use
+  * `:only` - Specifies which actions to authorize
+  * `:except` - Specifies which actions for which to skip authorization
+  * `:id_name` - Specifies the name of the id in `conn.params`, defaults to "id"
+  * `:id_field` - Specifies the name of the ID field in the database for searching :id_name value, defaults to "id".
+  * `:key_field` - Specifies the name of the signing_key field in the database for searching, defaults to "signing_key".
+  * `:not_found_handler` - Specify a handler function to be called if the resource is not found
+  """
 
   def authenticate!(conn, opts) do
     try do
