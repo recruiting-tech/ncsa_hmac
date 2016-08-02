@@ -12,9 +12,19 @@ https://github.com/cpjk/canary
 
 ## Installation
 
+The package can be installed as:
+
+  1. Add git: `ncsa_hmac` to your list of dependencies in `mix.exs`:
+
+    ```elixir
+    def deps do
+      [{:ncsa_hmac, git: "git@github.com:NCSAAthleticRecruiting/ncsa_hmac.git"}]
+    end
+    ```
+
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
 
-  1. Add `ncsa_hmac` to your list of dependencies in `mix.exs`:
+  1. Or add the published `ncsa_hmac` to your list of dependencies in `mix.exs`:
 
     ```elixir
     def deps do
