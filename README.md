@@ -5,7 +5,7 @@ https://github.com/engineyard/hmac
 
 This is not a direct port of the Engine Yard gem, but it follows many of the same implementation choices and uses the same request canonicalization methodology.
 
-Also important reference points for this project were erlang-hmac-sha:
+Important Elixir reference points for this project were erlang-hmac-sha:
 https://github.com/hypernumbers/erlang-hmac-sha
 and canary:
 https://github.com/cpjk/canary

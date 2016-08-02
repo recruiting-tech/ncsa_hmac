@@ -7,26 +7,24 @@ defmodule NcsaHmac.Plug do
 
   The plugs all store data in conn.assigns (in Phoenix applications, keys in conn.assigns can be accessed with `@key_name` in templates)
 
-  In order to use the plug functions, you must `use Canary`.
-
   You must also specify the Ecto repo to use in your configuration:
   ```
-  config :canary, repo: Project.Repo
+  config :ncsa_hmac, repo: Project.Repo
   ```
-  If you wish, you may also specify the key where Canary will look for the current user record to authorize against:
+  If you wish, you may also specify the key where NcsaHmac will look for the record to authorize against:
   ```
-  config :canary, current_user: :some_current_user
+  config :ncsa_hmac, api_keys: :some_api_key_record
   ```
 
   You can specify a handler function (in this case, `Helpers.handle_unauthorized`) to be called when an action is unauthorized like so:
   ```elixir
-  config :canary, unauthorized_handler: {Helpers, :handle_unauthorized}
+  config :ncsa_hmac, unauthorized_handler: {Helpers, :handle_unauthorized}
   ```
   or to handle when a resource is not found:
   ```elixir
-  config :canary, not_found_handler: {Helpers, :handle_not_found}
+  config :ncsa_hmac, not_found_handler: {Helpers, :handle_not_found}
   ```
-  Canary will pass the `conn` to the handler function.
+  NcsaHmac will pass the `conn` to the handler function.
   """
 
   @doc """
@@ -44,16 +42,6 @@ defmodule NcsaHmac.Plug do
 
   If the resource cannot be fetched, `conn.assigns.resource_name` is set
   to nil.
-
-  By default, when the action is `:index`, all records from the specified model will be loaded. This can
-  be overridden to fetch a single record from the database by using the `:persisted` key.
-
-  Currently, `:new` and `:create` actions are ignored, and `conn.assigns.resource_name`
-  will be set to nil for these actions. This can be overridden to fetch a single record from the database
-  by using the `:persisted` key.
-
-  The `:persisted` key can override how a resource is loaded and can be useful when dealing
-  with nested resources.
 
   Required opts:
 
@@ -95,7 +83,6 @@ defmodule NcsaHmac.Plug do
   end
 
   defp _load_resource(conn, opts) do
-    # action = get_action(conn)
     get_action(conn)
     loaded_resource = fetch_resource(conn, opts)
 
@@ -103,43 +90,18 @@ defmodule NcsaHmac.Plug do
   end
 
   @doc """
-  Authorize the current user for the given resource.
+  Authorize the resource, assuming the matching db record is loaded into the conn.
 
   In order to use this function,
 
-    1) `conn.assigns[Application.get_env(:canary, :current_user, :current_user)]` must be an ecto
-    struct representing the current user
+    1) `conn.assigns[Application.get_env(:ncsa_hmac, :record, :record)]` must be an ecto
+    struct representing the a record that has the signing_key and auth_id
 
     2) `conn.private` must be a map (this should not be a problem unless you explicitly modified it)
 
   If authorization succeeds, sets `conn.assigns.authorized` to true.
 
-  If authorization fails, sets `conn.assigns.authorized` to false.
-
-  For the `:index`, `:new`, and `:create` actions, the resource in the `Canada.Can` implementation
-  should be the module name of the model rather than a struct. A struct should be used instead of
-  the module name only if the `:persisted` key is used and you want to override the default
-  authorization behavior.  This can be useful when dealing with nested resources.
-
-  For example:
-
-    use
-    ```
-    def can?(%User{}, :index, Post), do: true
-    ```
-    instead of
-    ```
-    def can?(%User{}, :index, %Post{}), do: true
-    ```
-
-    or
-
-    use
-    ```
-    def can?(%User{id: user_id}, :index, %Post{user_id: user_id}), do: true
-    ```
-
-    if you are dealing with a nested resource, such as, "/post/post_id/comments"
+  If the resource cannot be loaded or authorization fails, conn.assigns.resource_name is set to nil.
 
   Required opts:
 
@@ -183,7 +145,9 @@ defmodule NcsaHmac.Plug do
       {:ok, true}  ->
         %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
       {:error, message} ->
-        Plug.Conn.assign(conn, :authorized, false) |> Plug.Conn.assign(:error_message, message)
+        Plug.Conn.assign(conn, :authorized, false)
+          |> Plug.Conn.assign(:error_message, message)
+          |> purge_resource_if_unauthorized(opts)
     end
   end
 
