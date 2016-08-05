@@ -101,7 +101,7 @@ defmodule NcsaHmac.Plug do
 
   If authorization succeeds, sets `conn.assigns.authorized` to true.
 
-  If the resource cannot be loaded or authorization fails, conn.assigns.resource_name is set to nil.
+  After authorization, conn.assigns.resource_name is set to nil.
 
   Required opts:
 
@@ -143,11 +143,12 @@ defmodule NcsaHmac.Plug do
     authentication = NcsaHmac.Authentication.authenticate!(conn, opts)
     case authentication do
       {:ok, true}  ->
-        %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
+        Plug.Conn.assign(conn, :authorized, true)
+          |> purge_resource(opts)
       {:error, message} ->
         Plug.Conn.assign(conn, :authorized, false)
           |> Plug.Conn.assign(:error_message, message)
-          |> purge_resource_if_unauthorized(opts)
+          |> purge_resource(opts)
     end
   end
 
@@ -161,6 +162,8 @@ defmodule NcsaHmac.Plug do
 
   The result of the authorization (true/false) is
   assigned to conn.assigns.authorized.
+
+  After authorization, conn.assigns.resource_name is set to nil.
 
   Also, see the documentation for load_resource/2 and
   authorize_resource/2.
@@ -200,21 +203,19 @@ defmodule NcsaHmac.Plug do
     conn
     |> action_valid?(opts)
     |> case do
-      true  -> _load_and_authorize_resource(conn, opts)
+      true  -> _load_authorize_and_purge_resource(conn, opts)
       false -> conn
     end
   end
 
-  defp _load_and_authorize_resource(conn, opts) do
+  defp _load_authorize_and_purge_resource(conn, opts) do
     conn
     |> load_resource(opts)
     |> authorize_resource(opts)
-    |> purge_resource_if_unauthorized(opts)
+    |> purge_resource(opts)
   end
 
-  defp purge_resource_if_unauthorized(conn = %{assigns: %{authorized: true}}, _opts),
-    do: conn
-  defp purge_resource_if_unauthorized(conn = %{assigns: %{authorized: false}}, opts),
+  defp purge_resource(conn, opts),
     do: %{conn | assigns: Map.put(conn.assigns, resource_name(opts), nil)}
 
   defp fetch_resource(conn, opts) do

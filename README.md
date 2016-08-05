@@ -10,6 +10,9 @@ https://github.com/hypernumbers/erlang-hmac-sha
 and canary:
 https://github.com/cpjk/canary
 
+In particular, the canary package was excellent guidance for how to inject the
+Repo as a dependency of the project and make testing possible.
+
 ## Installation
 
 The package can be installed as:
@@ -24,7 +27,7 @@ The package can be installed as:
 
 If [available in Hex](https://hex.pm/docs/publish), the package can be installed as:
 
-  1. Or add the published `ncsa_hmac` to your list of dependencies in `mix.exs`:
+  1. Add the published `ncsa_hmac` to your list of dependencies in `mix.exs`:
 
     ```elixir
     def deps do

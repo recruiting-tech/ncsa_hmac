@@ -139,7 +139,8 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", @valid_auth_string)
 
-    expected = %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
     assert authorize_resource(conn, @opts) == expected
   end
 
@@ -183,7 +184,8 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", @valid_auth_string)
     # when the resource with the id can be fetched
-    expected = %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
     assert load_and_authorize_resource(conn, opts) == expected
 
     # when the resource with the id cannot be fetched
@@ -201,7 +203,7 @@ defmodule NcsaHmac.PlugTest do
     assert load_and_authorize_resource(conn, opts) == expected
   end
 
-  test "it loads and authorizes the resource correctly when using :id_field options" do
+  test "it authorizes the resource correctly when using :id_field options" do
     opts = [model: ApiKey, id_name: "auth_id", id_field: "auth_id"]
     conn = conn(:post, "/api/auth", @target_body)
       |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
@@ -209,8 +211,8 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", @valid_auth_string)
-
-    expected = %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
     assert load_and_authorize_resource(conn, opts) == expected
 
     # when the resource with the id cannot be fetched
@@ -218,8 +220,9 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.assign(:api_key, nil)
 
     invalid_signature_message = "The signature authorization_id does not match any records. auth_id: auth_id1"
-    expected = Plug.Conn.assign(conn, :authorized, false) |> Plug.Conn.assign(:error_message, invalid_signature_message)
-    expected = %{expected | assigns: Map.put(expected.assigns, :api_key, nil)}
+    expected = Plug.Conn.assign(conn, :authorized, false)
+      |> Plug.Conn.assign(:error_message, invalid_signature_message)
+      |> Plug.Conn.assign(:api_key, nil)
     assert load_and_authorize_resource(conn, opts) == expected
   end
 
@@ -233,7 +236,8 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", @valid_auth_string)
-    expected = %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
     assert load_and_authorize_resource(conn, opts) == expected
 
     # when the signing key_field on the resource is invalid
@@ -241,8 +245,10 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", slug: "the_wrong_base64_signing_key"})
 
     invalid_signature_message = "Error: computed signature does not match header signature: #{@expected_sha512_signature}"
-    expected = Plug.Conn.assign(conn, :authorized, false) |> Plug.Conn.assign(:error_message, invalid_signature_message)
-    expected = %{expected | assigns: Map.put(expected.assigns, :api_key, nil)}
+    expected = Plug.Conn.assign(conn, :authorized, false)
+      |> Plug.Conn.assign(:error_message, invalid_signature_message)
+      |> Plug.Conn.assign(:api_key, nil)
+
     assert load_and_authorize_resource(conn, opts) == expected
   end
 
@@ -255,7 +261,8 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", @valid_auth_string)
-    expected = %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
     assert authorize_resource(conn, opts) == expected
 
     #when the only: action is stored under the :phoenix_action key
@@ -265,8 +272,8 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", @valid_auth_string)
-    expected = %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
-
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
     assert authorize_resource(conn, opts) == expected
 
     #when the action is not the :only action
@@ -288,7 +295,8 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", @valid_auth_string)
-    expected = %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
     assert load_and_authorize_resource(conn, opts) == expected
 
     #when the action is not the :only action
@@ -325,7 +333,8 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", @valid_auth_string)
-    expected = %{conn | assigns: Map.put(conn.assigns, :authorized, true)}
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
 
     assert load_and_authorize_resource(conn, opts) == expected
     assert authorize_resource(conn, opts) == expected
