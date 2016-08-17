@@ -1,7 +1,7 @@
-defmodule NcsaHmac.SignerTest do
+defmodule NcsaHmac.PlugConnSignerTest do
   use ExUnit.Case, async: true
   use Plug.Test
-  alias NcsaHmac.Signer
+  alias NcsaHmac.PlugConnSigner
   # doctest NcsaHmac
 
   # Crypto Implementation Note:
@@ -28,13 +28,13 @@ defmodule NcsaHmac.SignerTest do
 
   test "do not set content-digest if the body is empty" do
     conn = conn(:get, "/api/auth", "")
-    signed_conn =  Signer.sign!(conn, @key_id, @signing_key)
+    signed_conn =  PlugConnSigner.sign!(conn, @key_id, @signing_key)
     assert Plug.Conn.get_req_header(signed_conn, "content-digest") == [""]
   end
 
   test "calculate a MD5 digest of the message body/params" do
     conn = conn(:get, "/api/auth", @target_body)
-    signed_conn =  Signer.sign!(conn, @key_id, @signing_key)
+    signed_conn =  PlugConnSigner.sign!(conn, @key_id, @signing_key)
     assert Plug.Conn.get_req_header(signed_conn, "content-digest") == [@target_md5_hash]
   end
 
@@ -42,7 +42,7 @@ defmodule NcsaHmac.SignerTest do
     req_map = %{"abc" => 123, "def" => 456}
     conn = conn(:get, "/api/auth", req_map)
     md5_hash = Base.encode16(:erlang.md5("{\"abc\":123,\"def\":456}"), case: :lower)
-    signed_conn = Signer.sign!(conn, @key_id, @signing_key)
+    signed_conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
     signature = Plug.Conn.get_req_header(signed_conn, "content-digest")
 
     assert signature == [md5_hash]
@@ -52,7 +52,7 @@ defmodule NcsaHmac.SignerTest do
     req_map = %{"abc" => 123, "def" => 456, 123 => 789}
     conn = conn(:get, "/api/auth", req_map)
     md5_hash = Base.encode16(:erlang.md5("{\"123\":789,\"abc\":123,\"def\":456}"), case: :lower)
-    signed_conn = Signer.sign!(conn, @key_id, @signing_key)
+    signed_conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
     signature = Plug.Conn.get_req_header(signed_conn, "content-digest")
     assert signature == [md5_hash]
   end
@@ -61,7 +61,7 @@ defmodule NcsaHmac.SignerTest do
     req_map = %{"def" => "ghi", "abc" => 123, 123 => "789"}
     conn = conn(:get, "/api/auth", req_map)
     md5_hash = Base.encode16(:erlang.md5("{\"123\":\"789\",\"abc\":123,\"def\":\"ghi\"}"), case: :lower)
-    signed_conn = Signer.sign!(conn, @key_id, @signing_key)
+    signed_conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
     signature = Plug.Conn.get_req_header(signed_conn, "content-digest")
     assert signature == [md5_hash]
   end
@@ -70,7 +70,7 @@ defmodule NcsaHmac.SignerTest do
     req_map = %{"def" => 456, "abc" => 123, 123 => [1,2,3]}
     conn = conn(:get, "/api/auth", req_map)
     md5_hash = Base.encode16(:erlang.md5("{\"123\":[1,2,3],\"abc\":123,\"def\":456}"), case: :lower)
-    signed_conn = Signer.sign!(conn, @key_id, @signing_key)
+    signed_conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
     signature = Plug.Conn.get_req_header(signed_conn, "content-digest")
     assert signature == [md5_hash]
   end
@@ -79,7 +79,7 @@ defmodule NcsaHmac.SignerTest do
     {:ok, iso_date} = Timex.Format.DateTime.Formatter.format(Timex.now, "{ISOdate}" )
     conn = conn(:get, "/api/auth", @target_body)
     assert Plug.Conn.get_req_header(conn, "date") == []
-    signed_conn = Signer.sign!(conn, @key_id, @signing_key)
+    signed_conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
     assert String.match?(List.first(Plug.Conn.get_req_header(signed_conn, "date")), ~r/#{iso_date}/)
   end
 
@@ -87,7 +87,7 @@ defmodule NcsaHmac.SignerTest do
     conn = conn(:get, "/api/auth", @target_body)
     date = "1234"
     conn = Plug.Conn.put_req_header(conn, "date", date)
-    canonical = Signer.canonicalize_conn(conn)
+    canonical = PlugConnSigner.canonicalize_conn(conn)
     assert canonical == "GET" <> "\n"
       <> "multipart/mixed; charset: utf-8" <> "\n"
       <> @target_md5_hash <> "\n"
@@ -99,7 +99,7 @@ defmodule NcsaHmac.SignerTest do
     conn = conn(:post, "/api/auth", @target_body)
     conn = Plug.Conn.put_req_header(conn, "content-type", @signature_params["content-type"])
     conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
-    signature = Signer.signature(conn, @signing_key)
+    signature = PlugConnSigner.signature(conn, @signing_key)
     assert signature == @expected_sha512_signature
   end
 
@@ -108,7 +108,7 @@ defmodule NcsaHmac.SignerTest do
     conn = conn(:post, "/api/auth", @target_body)
     conn = Plug.Conn.put_req_header(conn, "content-type", @signature_params["content-type"])
     conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
-    signature = Signer.signature(conn, @signing_key, :sha384)
+    signature = PlugConnSigner.signature(conn, @signing_key, :sha384)
     assert signature == expected_sha384_signature
   end
 
@@ -117,7 +117,7 @@ defmodule NcsaHmac.SignerTest do
     conn = conn(:post, "/api/auth", @target_body)
     conn = Plug.Conn.put_req_header(conn, "content-type", @signature_params["content-type"])
     conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
-    signature = Signer.signature(conn, @signing_key, :sha256)
+    signature = PlugConnSigner.signature(conn, @signing_key, :sha256)
     assert signature == expected_sha256_signature
   end
 
@@ -126,7 +126,7 @@ defmodule NcsaHmac.SignerTest do
     conn = conn(:post, "/api/auth", @target_body)
     conn = Plug.Conn.put_req_header(conn, "content-type", "")
     conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
-    signature = Signer.signature(conn, @signing_key)
+    signature = PlugConnSigner.signature(conn, @signing_key)
     assert signature == expected_signature
   end
 
@@ -136,7 +136,7 @@ defmodule NcsaHmac.SignerTest do
     conn = conn(:post, "/api/auth", @target_body)
     assert Plug.Conn.get_req_header(conn, "content-type") == [default_content_type]
     conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
-    signature = Signer.signature(conn, @signing_key)
+    signature = PlugConnSigner.signature(conn, @signing_key)
     assert signature == expected_signature
   end
 
@@ -145,7 +145,7 @@ defmodule NcsaHmac.SignerTest do
     conn = conn(:post, "/api/auth", @target_body)
     conn = Plug.Conn.put_req_header(conn, "content-type", @signature_params["content-type"])
     conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
-    conn = Signer.sign!(conn, @key_id, @signing_key)
+    conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
 
     signature = List.first(Plug.Conn.get_req_header(conn, "authorization"))
     assert signature == auth_string
@@ -154,11 +154,11 @@ defmodule NcsaHmac.SignerTest do
   test "Missing key_id throws an exception" do
     conn = conn(:post, "/api/auth", @target_body)
     assert_raise(NcsaHmac.SigningError, fn ->
-        Signer.authorization(conn, nil, @signing_key)
+        PlugConnSigner.authorization(conn, nil, @signing_key)
       end
     )
     assert_raise(NcsaHmac.SigningError, fn ->
-        Signer.authorization(conn, "", @signing_key)
+        PlugConnSigner.authorization(conn, "", @signing_key)
       end
     )
   end
@@ -166,11 +166,11 @@ defmodule NcsaHmac.SignerTest do
   test "Missing key_secret throws an exception" do
     conn = conn(:post, "/api/auth", @target_body)
     assert_raise(NcsaHmac.SigningError, fn ->
-        Signer.authorization(conn, @key_id, nil)
+        PlugConnSigner.authorization(conn, @key_id, nil)
       end
     )
     assert_raise(NcsaHmac.SigningError, fn ->
-        Signer.authorization(conn, @key_id, "")
+        PlugConnSigner.authorization(conn, @key_id, "")
       end
     )
   end

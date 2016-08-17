@@ -1,5 +1,5 @@
 defmodule NcsaHmac.Authentication do
-  alias NcsaHmac.Signer
+  alias NcsaHmac.PlugConnSigner
   @authorization_regexp ~r/\w+ ([^:]+):(.+)$/
   @accepted_algorithms [:sha512, :sha384, :sha256]
 
@@ -91,7 +91,7 @@ defmodule NcsaHmac.Authentication do
 
   defp verify_signature!(conn, signature, signing_key) do
     valid_algorithm = Enum.reject(@accepted_algorithms, fn(algo) ->
-      signature != Signer.signature(conn, signing_key, algo)
+      signature != PlugConnSigner.signature(conn, signing_key, algo)
     end)
     #Calculate and compare the signature again, so we don't return true by default
     validate_signature(conn, signature, signing_key, valid_algorithm)
@@ -101,7 +101,7 @@ defmodule NcsaHmac.Authentication do
     authorization_error "Error: computed signature does not match header signature: #{signature}"
   end
   defp validate_signature(conn, signature, signing_key, algorithm) do
-    {:ok, signature == Signer.signature(conn, signing_key, Enum.at(algorithm, 0))}
+    {:ok, signature == PlugConnSigner.signature(conn, signing_key, Enum.at(algorithm, 0))}
   end
 
   defp authorization_error(message) do

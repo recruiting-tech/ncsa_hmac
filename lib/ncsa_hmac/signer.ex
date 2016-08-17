@@ -1,4 +1,4 @@
-defmodule NcsaHmac.Signer do
+defmodule NcsaHmac.PlugConnSigner do
   @default_hash :sha512
   @service_name "NCSA.HMAC"
   @authorization_regexp ~r/\w+ ([^:]+):(.+)$/
