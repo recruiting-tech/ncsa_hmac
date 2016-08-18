@@ -61,6 +61,21 @@ defmodule NcsaHmac.SignerTest do
       <> "/api/auth"
   end
 
+  test "canonical message content UPCASE method and downcase path" do
+    date = "1234"
+    request_details = Map.update!(@request_details, "method", fn(_) -> "post" end)
+      |> Map.update!("date", fn(_) -> date end)
+      |> Map.update!("path", fn(_) -> "/aPi/AUth" end)
+    canonical = Signer.canonicalize_request(request_details)
+
+    assert canonical == "POST" <> "\n"
+      <> "application/json" <> "\n"
+      <> @target_md5_hash <> "\n"
+      <> date <> "\n"
+      <> "/api/auth"
+  end
+
+
   test "computed signature matches a known SHA512 signature" do
     signature = Signer.signature(@request_details, @signing_key)
     assert signature == @expected_sha512_signature
@@ -106,5 +121,4 @@ defmodule NcsaHmac.SignerTest do
       end
     )
   end
-
 end

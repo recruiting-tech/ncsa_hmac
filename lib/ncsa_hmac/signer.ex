@@ -12,7 +12,8 @@ defmodule NcsaHmac.Signer do
   Required paramters:
 
   * `:request_details` - A Map of the key elements from the request that are
-  needed to compute a correct signature.
+  needed to compute a correct signature, must include: METHOD, PATH, PARAMS,
+  and CONTENT-TYPE, optional values: DATE
   * `:key_id` - The database id of the record. This is also the publically
   visible and unencrypted piece of the request signature
   * `:key_secret` - The signing_key or sercret_key that is used to sign the request.
@@ -36,10 +37,6 @@ defmodule NcsaHmac.Signer do
     validate_key!(key_id, "key_id")
     validate_key!(key_secret, "key_secret")
     "#{@service_name} #{key_id}:#{signature(request_details, key_secret)}"
-
-    # request_details = request_details |> set_header_date
-    #   |> Map.put("content-digest", content_digest(request_details["params"]))
-    #   |> authorization(key_id, key_secret, hash_type)
   end
 
   @doc """
@@ -60,7 +57,13 @@ defmodule NcsaHmac.Signer do
   def canonicalize_request(request_details) do
     request_details = request_details |> set_request_date
       |> Map.put("content-digest", content_digest(request_details["params"]))
-    Enum.join([request_details["method"], request_details["content-type"], request_details["content-digest"], request_details["date"], request_details["path"]], "\n")
+    Enum.join([
+      String.upcase(request_details["method"]),
+      request_details["content-type"],
+      request_details["content-digest"],
+      request_details["date"],
+      String.downcase(request_details["path"])
+      ], "\n")
   end
 
   @doc """
