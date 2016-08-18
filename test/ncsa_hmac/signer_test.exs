@@ -4,13 +4,6 @@ defmodule NcsaHmac.SignerTest do
   alias NcsaHmac.Signer
   # doctest NcsaHmac
 
-  # Crypto Implementation Note:
-  # For all computed hashes the ruby OpenSSL gem was used.
-  # Cryptographic hashes are expected to be the same given the same inputs
-  # regarless of the language that implements the hash function.
-  # Further validation against other crypto libraries would be nice,
-  # though it should not produce different results.
-
   @key_id "SECRET_KEY_ID"
   @signing_key "abcdefghijkl"
   @target_md5_hash "ecadfcaf838cc3166d637a196530bd90"
@@ -51,15 +44,9 @@ defmodule NcsaHmac.SignerTest do
   test "set the date when none is passed in the request" do
     request_details = Map.delete(@request_details, "date")
     canonical = Signer.canonicalize_request(request_details)
-    {:ok, strftime} = Timex.Format.DateTime.Formatter.format(Timex.now, "%FZ%R", :strftime)
-    IO.inspect canonical
-    IO.inspect strftime
+    {:ok, strftime} = Timex.Format.DateTime.Formatter.format(Timex.now, "%FT%R", :strftime)
+
     assert String.contains?(canonical, strftime)
-     # == "POST" <> "\n"
-     #  <> "application/json" <> "\n"
-     #  <> @target_md5_hash <> "\n"
-     #  <> iso_date <> "\n"
-     #  <> "/api/auth"
   end
 
   test "canonical message content" do
