@@ -26,16 +26,18 @@ defmodule NcsaHmac.SignerTest do
   end
 
   test "handle urls params as a string" do
-    auth_string = "NCSA.HMAC " <> @key_id <> ":" <> "obUmKdcBReDl2ovTb0wKQHB1kPBU2ksKEqKC9fQ9OKF/9p8c9HLjdKnXpw+TqeiGOtKGZPPq/C8isWVVqEdAmw=="
+    auth_string = "NCSA.HMAC " <> @key_id <> ":" <> "WL2jpuZvzq/tACXys9Fj2P/DDKqMtQaHG89Dh4fRI+m1R6aHfyOQqNppZY4Dam06+XRDv8fPT5O3vqIaAnM+pg=="
     request_details = Map.update!(@request_details, "params", fn(_) -> "abc=def" end )
+    request_details = Map.update!(request_details, "content-digest", fn(_) -> "f2f6d2526d07571b567fea02cd1d9cf0" end )
     signature =  Signer.sign(request_details, @key_id, @signing_key)
 
     assert signature == auth_string
   end
 
   test "handle mutiple urls params as a string" do
-    auth_string = "NCSA.HMAC " <> @key_id <> ":" <> "nTFG2IxI5REJpfFgSkk0NmhnovaprbmLbUUlr+pVPVRs95NF0aaF1Q3prZSA+DVLVDLLkvSfG5bPsZALD6cXBw=="
+    auth_string = "NCSA.HMAC " <> @key_id <> ":" <> "wLJRK77xmhWABUXXtYjjHctkrkFMK6GH3jxOIzVUH1PEZot6SuDsLDgP+EbQLL+n1YbgX4lW9hYWnVPI6f9d7A=="
     request_details = Map.update!(@request_details, "params", fn(_) -> "abc=def&def=ghi" end )
+    request_details = Map.update!(request_details, "content-digest", fn(_) -> "f27e1a3af4d23f232300f23fe8dfda15" end )
     signature =  Signer.sign(request_details, @key_id, @signing_key)
 
     assert signature == auth_string

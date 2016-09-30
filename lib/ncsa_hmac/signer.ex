@@ -36,7 +36,7 @@ defmodule NcsaHmac.Signer do
   def sign(request_details, key_id, key_secret, hash_type \\ @default_hash) do
     validate_key!(key_id, "key_id")
     validate_key!(key_secret, "key_secret")
-    "#{@service_name} #{key_id}:#{signature(request_details, key_secret)}"
+    "#{@service_name} #{key_id}:#{signature(request_details, key_secret, hash_type)}"
   end
 
   @doc """
@@ -77,6 +77,19 @@ defmodule NcsaHmac.Signer do
     )
   end
 
+  @doc """
+  For interoperabiltiy, request parameters are converted to json and sorted
+  by key, so hash computation is unlikely to produce different results on
+  different systems.
+  """
+  def normalize_parameters(params) when is_map(params) do
+    case JSON.encode params do
+      {:ok, json_params} -> json_params
+      {:error, params} -> params
+    end
+  end
+  def normalize_parameters(params), do: params
+
   defp content_digest(params) when params == %{}, do: ""
   defp content_digest(params) do
     Base.encode16(:erlang.md5(normalize_parameters(params)), case: :lower)
@@ -99,19 +112,6 @@ defmodule NcsaHmac.Signer do
       nil -> raise NcsaHmac.SigningError, message: "#{key_type} is required"
       "" -> raise NcsaHmac.SigningError, message: "#{key_type} is required"
       _ -> "carry on"
-    end
-  end
-
-  @doc """
-  For interoperabiltiy, request parameters are converted to json and sorted
-  by key, so hash computation is unlikely to produce different results on
-  different systems.
-  """
-  defp normalize_parameters(params) do
-    # {status, json_params} = JSON.encode params
-    case JSON.encode params do
-      {:ok, json_params} -> json_params
-      {:error, params} -> params
     end
   end
 end
