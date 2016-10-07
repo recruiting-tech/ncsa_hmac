@@ -34,6 +34,8 @@ defmodule NcsaHmac.Mixfile do
       {:plug, "~> 1.0"},
       {:earmark, ">= 0.0.0", only: :dev},
       {:ex_doc, "~> 0.7", only: :dev},
+      {:export, "~> 0.0.7", only: [:dev, :test]},
+      {:erlport, github: "hdima/erlport", manager: :make, only: [:dev, :test]}
     ]
   end
 
