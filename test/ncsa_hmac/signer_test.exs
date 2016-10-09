@@ -25,6 +25,24 @@ defmodule NcsaHmac.SignerTest do
     assert signature == auth_string
   end
 
+  test "drop the params key if method == GET" do
+    auth_string = "NCSA.HMAC " <> @key_id <> ":" <> "hr5RzRRRJ5vIw0XvLq9e2ALR+VmVLQK64keRAnJ5EZy6d/JMeQPbmheOSeyMdk3R31D7CQjhXeo6bRF63j8HIg=="
+    request_details = Map.update!(@request_details, "method", fn(_) -> "GET" end )
+    |> Map.update!("path", fn(_) -> "/api/auth?query=something" end )
+
+    signature =  Signer.sign(request_details, @key_id, @signing_key)
+    assert signature == auth_string
+  end
+
+  test "drop the params key if method == get" do
+    auth_string = "NCSA.HMAC " <> @key_id <> ":" <> "hr5RzRRRJ5vIw0XvLq9e2ALR+VmVLQK64keRAnJ5EZy6d/JMeQPbmheOSeyMdk3R31D7CQjhXeo6bRF63j8HIg=="
+    request_details = Map.update!(@request_details, "method", fn(_) -> "get" end )
+    |> Map.update!("path", fn(_) -> "/api/auth?query=something" end )
+
+    signature =  Signer.sign(request_details, @key_id, @signing_key)
+    assert signature == auth_string
+  end
+
   test "handle urls params as a string" do
     auth_string = "NCSA.HMAC " <> @key_id <> ":" <> "WL2jpuZvzq/tACXys9Fj2P/DDKqMtQaHG89Dh4fRI+m1R6aHfyOQqNppZY4Dam06+XRDv8fPT5O3vqIaAnM+pg=="
     request_details = Map.update!(@request_details, "params", fn(_) -> "abc=def" end )

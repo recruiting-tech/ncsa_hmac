@@ -55,8 +55,10 @@ defmodule NcsaHmac.Signer do
   """
 
   def canonicalize_request(request_details) do
-    request_details = request_details |> set_request_date
-      |> Map.put("content-digest", content_digest(request_details["params"]))
+    request_details = request_details
+    |> set_request_date
+    |> drop_get_params
+    |> set_content_digest
     Enum.join([
       String.upcase(request_details["method"]),
       request_details["content-type"],
@@ -90,6 +92,10 @@ defmodule NcsaHmac.Signer do
   end
   def normalize_parameters(params), do: params
 
+  defp set_content_digest(request_details) do
+    Map.put(request_details, "content-digest", content_digest(request_details["params"]))
+  end
+  defp content_digest(nil), do: ""
   defp content_digest(params) when params == %{}, do: ""
   defp content_digest(params) do
     Base.encode16(:erlang.md5(normalize_parameters(params)), case: :lower)
@@ -98,6 +104,14 @@ defmodule NcsaHmac.Signer do
   defp set_request_date(request_details) do
     date = Map.get(request_details, "date")
     Map.put(request_details, "date", set_date(date))
+  end
+
+  defp drop_get_params(request_details) do
+    method = String.upcase(request_details["method"])
+    if method == "GET" do
+      request_details = Map.drop(request_details, ["params"])
+    end
+    request_details
   end
 
   defp set_date(nil) do
