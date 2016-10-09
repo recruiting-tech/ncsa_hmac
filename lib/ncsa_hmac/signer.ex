@@ -25,18 +25,18 @@ defmodule NcsaHmac.Signer do
 
   * `:hash_type` - Specifies the cryptographic hash function to use when computing
   the signature.
-  """
-  @doc """
+  * `:service` - Specifies the string to use in the signature, defaults to 'NCSA.HMAC'.
+
   Set the signature signature string which will be added to the `Authorization`
   header. Authorization string take the form:
   'NCSA.HMAC auth_id:base64_encoded_cryptograhic_signature'
 
   """
 
-  def sign(request_details, key_id, key_secret, hash_type \\ @default_hash) do
+  def sign(request_details, key_id, key_secret, hash_type \\ @default_hash, service_name \\ @service_name) do
     validate_key!(key_id, "key_id")
     validate_key!(key_secret, "key_secret")
-    "#{@service_name} #{key_id}:#{signature(request_details, key_secret, hash_type)}"
+    "#{service_name} #{key_id}:#{signature(request_details, key_secret, hash_type)}"
   end
 
   @doc """
@@ -108,10 +108,10 @@ defmodule NcsaHmac.Signer do
 
   defp drop_get_params(request_details) do
     method = String.upcase(request_details["method"])
-    if method == "GET" do
-      request_details = Map.drop(request_details, ["params"])
+    case method do
+      "GET" -> Map.drop(request_details, ["params"])
+      _ -> request_details
     end
-    request_details
   end
 
   defp set_date(nil) do

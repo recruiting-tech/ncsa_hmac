@@ -61,6 +61,13 @@ defmodule NcsaHmac.SignerTest do
     assert signature == auth_string
   end
 
+  test "Send optional service_name" do
+    auth_string = "TEST.HMAC " <> @key_id <> ":" <> @expected_sha512_signature
+
+    signature =  Signer.sign(@request_details, @key_id, @signing_key, :sha512, "TEST.HMAC")
+    assert signature == auth_string
+  end
+
   test "set the date when none is passed in the request" do
     request_details = Map.delete(@request_details, "date")
     canonical = Signer.canonicalize_request(request_details)
