@@ -112,6 +112,10 @@ defmodule NcsaHmac.CrossValidation.RubyTest do
     authenticate("PUT")
   end
 
+  test "Check the Ey::Hmac lib can authenticate an NcsaHmac PATCH request" do
+    authenticate("patch")
+  end
+
   test "Check the Ey::Hmac lib can authenticate an NcsaHmac DELETE request" do
     authenticate("DELETE")
   end
@@ -120,11 +124,7 @@ defmodule NcsaHmac.CrossValidation.RubyTest do
     authenticate("HEAD")
   end
 
-  test "Check the Ey::Hmac lib can authenticate an NcsaHmac PATCH request" do
-    authenticate("patch")
-  end
-
-  def validate_signature(method, hash_type) do
+  defp validate_signature(method, hash_type) do
     request_details = request_details(method)
     ey_signature = RubyCall.ruby_call(method, @path, normalize_parameters, @content_type, @date, @public_key, @private_key, hash_type)
     ex_signature = Signer.signature(request_details, @private_key, hash_type)
@@ -132,7 +132,7 @@ defmodule NcsaHmac.CrossValidation.RubyTest do
     assert ey_signature == ex_signature
   end
 
-  def authenticate(method) do
+  defp authenticate(method) do
     request_details = request_details(method)
     ex_signature = Signer.sign(request_details, @public_key, @private_key, @hash_type)
     ey_authenticated = RubyCall.ruby_call_authenticate(method, @path, normalize_parameters, @content_type, @date, @public_key, @private_key, @hash_type, ex_signature)
