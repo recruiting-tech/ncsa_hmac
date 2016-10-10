@@ -19,7 +19,7 @@ def signature(request_method, path, params, content_type, date, public_key, priv
   ey.signature(private_key, signing_hash).gsub("\n","")
 end
 
-def request(request_method, path, params, content_type, date, public_key, private_key, signing_hash = :sha512, options={}, elixir_signature)
+def authenticate(request_method, path, params, content_type, date, public_key, private_key, signing_hash = :sha512, options={}, elixir_signature)
   f = StringIO.new(params)
   digest = Digest::MD5.hexdigest(params)
 

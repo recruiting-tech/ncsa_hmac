@@ -7,9 +7,9 @@ defmodule RubyElixir.RubyCall do
     |> Ruby.call("ruby", "signature", [request_method, path, params, content_type, date, public_key, private_key, signing_hash])
   end
 
-  def ruby_call_request(request_method, path, params, content_type, date, public_key, private_key, signing_hash, elixir_signature) do
+  def ruby_call_authenticate(request_method, path, params, content_type, date, public_key, private_key, signing_hash, elixir_signature) do
     {:ok, ruby} = Ruby.start(ruby_lib: Path.expand("lib/ruby"))
     ruby
-    |> Ruby.call("ruby", "request", [request_method, path, params, content_type, date, public_key, private_key, signing_hash, elixir_signature])
+    |> Ruby.call("ruby", "authenticate", [request_method, path, params, content_type, date, public_key, private_key, signing_hash, elixir_signature])
   end
 end
