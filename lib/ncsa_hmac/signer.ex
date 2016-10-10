@@ -3,7 +3,7 @@ defmodule NcsaHmac.Signer do
   @service_name "NCSA.HMAC"
 
   @moduledoc """
-  The Signer module provides functions for signing a conn (web request) with a cryptographic algorithm.
+  The Signer module provides functions for generating an HMAC signature based on the details of a web request
   """
 
   @doc """
@@ -30,7 +30,6 @@ defmodule NcsaHmac.Signer do
   Set the signature signature string which will be added to the `Authorization`
   header. Authorization string take the form:
   'NCSA.HMAC auth_id:base64_encoded_cryptograhic_signature'
-
   """
 
   def sign(request_details, key_id, key_secret, hash_type \\ @default_hash, service_name \\ @service_name) do
@@ -71,7 +70,6 @@ defmodule NcsaHmac.Signer do
   @doc """
   Compute the cryptographic signature from the canonical request string using
   the key_secret and hash_type specified in the function call.
-
   """
   def signature(request_details, key_secret, hash_type \\ @default_hash) do
     Base.encode64(

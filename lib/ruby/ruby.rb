@@ -1,5 +1,4 @@
 require 'ey-hmac'
-require 'ostruct'
 require 'rack'
 
 def signature(request_method, path, params, content_type, date, public_key, private_key, signing_hash = :sha512, options={})
