@@ -100,7 +100,7 @@ defmodule NcsaHmac.CrossValidation.RubyTest do
     }
     ex_signature = Signer.sign(request_details, @public_key, @private_key, @hash_type)
     ey_authenticated = RubyCall.ruby_call_authenticate("get", concat_path, "", @content_type, @date, @public_key, @private_key, @hash_type, ex_signature)
-    
+
     assert ey_authenticated == true
   end
 
@@ -124,6 +124,57 @@ defmodule NcsaHmac.CrossValidation.RubyTest do
     authenticate("HEAD")
   end
 
+  test "Validate signature with multiple request parameters PUT request" do
+    method = "PUT"
+    params = %{email: "user@school.edu", iped: "2345"}
+    request_details = %{"path" => @path,
+      "method" => method,
+      "params" => params,
+      "date" => @date,
+      "content-type" => @content_type
+    }
+
+    normalize_parameters = Signer.normalize_parameters params
+    ey_signature = RubyCall.ruby_call(method, @path, normalize_parameters, @content_type, @date, @public_key, @private_key, @hash_type)
+    ex_signature = Signer.signature(request_details, @private_key, @hash_type)
+
+    assert ey_signature == ex_signature
+  end
+
+  test "Validate signature with multiple parameters PUT request" do
+    method = "PUT"
+    params = %{email: "user@school.edu", iped: 2345}
+    request_details = %{"path" => @path,
+      "method" => method,
+      "params" => params,
+      "date" => @date,
+      "content-type" => @content_type
+    }
+
+    normalize_parameters = Signer.normalize_parameters params
+    ey_signature = RubyCall.ruby_call(method, @path, normalize_parameters, @content_type, @date, @public_key, @private_key, @hash_type)
+    ex_signature = Signer.signature(request_details, @private_key, @hash_type)
+
+    assert ey_signature == ex_signature
+  end
+
+  test "Validate signature with multiple request parameters and string keys PUT" do
+    method = "PUT"
+    params = %{"email" => "user@school.edu", "iped" => "2345"}
+    request_details = %{"path" => @path,
+      "method" => method,
+      "params" => params,
+      "date" => @date,
+      "content-type" => @content_type
+    }
+
+    normalize_parameters = Signer.normalize_parameters params
+    ey_signature = RubyCall.ruby_call(method, @path, normalize_parameters, @content_type, @date, @public_key, @private_key, @hash_type)
+    ex_signature = Signer.signature(request_details, @private_key, @hash_type)
+
+    assert ey_signature == ex_signature
+  end
+
   defp validate_signature(method, hash_type) do
     request_details = request_details(method)
     ey_signature = RubyCall.ruby_call(method, @path, normalize_parameters, @content_type, @date, @public_key, @private_key, hash_type)
@@ -136,8 +187,8 @@ defmodule NcsaHmac.CrossValidation.RubyTest do
     request_details = request_details(method)
     ex_signature = Signer.sign(request_details, @public_key, @private_key, @hash_type)
     ey_authenticated = RubyCall.ruby_call_authenticate(method, @path, normalize_parameters, @content_type, @date, @public_key, @private_key, @hash_type, ex_signature)
-    
-    assert ey_authenticated == true    
+
+    assert ey_authenticated == true
   end
 
   defp normalize_parameters do
