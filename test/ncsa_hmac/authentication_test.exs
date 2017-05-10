@@ -21,6 +21,24 @@ defmodule NcsaHmac.AuthenticationTest do
   @content_type "application/json"
   @opts [model: AuthKey, id_name: "auth_id", id_field: "auth_id", key_field: "signing_key"]
 
+  test "#auth_id parses a valid signature and returns the auth_id" do
+    auth_string = "NCSA.HMAC " <> @key_id <> ":" <> @expected_sha512_signature
+    conn = conn(:post, "/api/auth", @target_body)
+    |> Plug.Conn.put_req_header("authorization", auth_string)
+
+    assert Authentication.auth_id(conn, @opts) == @key_id
+  end
+
+  test "#auth_id raises an exception when the signature cannot parse" do
+    auth_string = "NCSA.HMAC " <> @expected_sha512_signature
+    conn = conn(:post, "/api/auth", @target_body)
+    |> Plug.Conn.put_req_header("authorization", auth_string)
+
+    assert_raise NcsaHmac.AuthorizationError, "Failed to parse authorization_signature: #{auth_string}", fn ->
+      Authentication.auth_id(conn, @opts)
+    end
+  end
+
   test "#authenticate! is true for a valid signature" do
     auth_string = "NCSA.HMAC " <> @key_id <> ":" <> @expected_sha512_signature
     conn = conn(:post, "/api/auth", @target_body)

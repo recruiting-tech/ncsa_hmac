@@ -248,7 +248,7 @@ defmodule NcsaHmac.Plug do
       nil ->
         conn.params["id"]
       id_name ->
-        conn.params[id_name]
+        conn.params[id_name] || "THIS_SHOULD_FAIL"
     end
   end
 
