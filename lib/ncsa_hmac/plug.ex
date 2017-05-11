@@ -221,10 +221,11 @@ defmodule NcsaHmac.Plug do
   defp fetch_resource(conn, opts) do
     repo = Application.get_env(:ncsa_hmac, :repo)
 
-    field_name = (opts[:id_field] || "id")
+    # field_name = (opts[:id_field] || "id")
 
-    get_map_args = %{field_name => get_resource_id(conn, opts)}
-    get_map_args = (for {key, val} <- get_map_args, into: %{}, do: {String.to_atom(key), val})
+    # get_map_args = %{field_name => get_resource_id(conn, opts)}
+    # get_map_args = (for {key, val} <- get_map_args, into: %{}, do: {String.to_atom(key), val})
+    get_map_args = get_map_args(conn, opts)
 
     conn.assigns
     |> Map.fetch(resource_name(opts)) # check if a resource is already loaded at the key
@@ -243,12 +244,22 @@ defmodule NcsaHmac.Plug do
     end
   end
 
+  defp get_map_args(conn, opts) do
+    field_name = (opts[:id_field] || "id")
+    resource_id = get_resource_id(conn, opts)
+    resource = case resource_id do
+      nil -> NcsaHmac.Authentication.auth_id(conn, opts)
+      _ -> resource_id
+    end
+    %{String.to_atom(field_name) => resource}
+  end
+
   defp get_resource_id(conn, opts) do
     case opts[:id_name] do
       nil ->
         conn.params["id"]
       id_name ->
-        conn.params[id_name] || "THIS_SHOULD_FAIL"
+        conn.params[id_name]
     end
   end
 
