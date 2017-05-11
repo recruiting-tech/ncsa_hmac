@@ -134,7 +134,7 @@ defmodule NcsaHmac.Plug do
     conn
     |> action_valid?(opts)
     |> case do
-      true  -> auth = _authorize_resource(conn, opts) |> handle_unauthorized(opts)
+      true  -> _authorize_resource(conn, opts) |> handle_unauthorized(opts)
       false -> conn
     end
   end
@@ -220,11 +220,6 @@ defmodule NcsaHmac.Plug do
 
   defp fetch_resource(conn, opts) do
     repo = Application.get_env(:ncsa_hmac, :repo)
-
-    # field_name = (opts[:id_field] || "id")
-
-    # get_map_args = %{field_name => get_resource_id(conn, opts)}
-    # get_map_args = (for {key, val} <- get_map_args, into: %{}, do: {String.to_atom(key), val})
     get_map_args = get_map_args(conn, opts)
 
     conn.assigns
