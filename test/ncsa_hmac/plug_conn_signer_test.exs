@@ -175,4 +175,14 @@ defmodule NcsaHmac.PlugConnSignerTest do
     )
   end
 
+  test "handle Plug wrapping the params in _json key" do
+    auth_string = "NCSA.HMAC " <> @key_id <> ":" <> @expected_sha512_signature
+    conn = conn(:post, "/api/auth", %{"_json" => @target_body})
+    conn = Plug.Conn.put_req_header(conn, "content-type", @signature_params["content-type"])
+    conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
+    conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
+
+    signature = List.first(Plug.Conn.get_req_header(conn, "authorization"))
+    assert signature == auth_string
+  end
 end

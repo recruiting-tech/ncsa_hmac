@@ -25,8 +25,7 @@ defmodule NcsaHmac.Signer do
 
   * `:hash_type` - Specifies the cryptographic hash function to use when computing
   the signature.
-  """
-  @doc """
+
   Set the signature signature string which will be added to the `Authorization`
   header. Authorization string take the form:
   'NCSA.HMAC auth_id:base64_encoded_cryptograhic_signature'

@@ -58,7 +58,6 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.assign(:api_key, %ApiKey{id: 2})
     expected = %{conn | assigns: Map.put(conn.assigns, :api_key, %ApiKey{id: 2})}
     assert load_resource(conn, opts) == expected
-    # IO.inspect conns
 
     # when a resource of a different type is already present in conn.assigns
     # it replaces that resource with the desired resource
@@ -144,6 +143,17 @@ defmodule NcsaHmac.PlugTest do
     assert authorize_resource(conn, @opts) == expected
   end
 
+  test "it invalidates the request when authorization header is absent" do
+    conn = conn(:post, "/api/auth", @target_body)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
+
+    expected = Plug.Conn.assign(conn, :authorized, false)
+      |> Plug.Conn.assign(:error_message, "Failed to parse authorization_signature: nil")
+      |> Plug.Conn.assign(:api_key, nil)
+    assert authorize_resource(conn, @opts) == expected
+  end
+
   test "it invalidates the request signature and authorizes when signature is invalid" do
     auth_string = "NCSA.HMAC " <> @key_id <> ":invalid_signature"
     conn = conn(:post, "/api/auth", @target_body)
@@ -176,6 +186,34 @@ defmodule NcsaHmac.PlugTest do
   end
 
   test "it loads and authorizes the resource correctly" do
+    opts = [model: ApiKey]
+    conn = conn(:post, "/api/auth", @target_body)
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
+      |> Plug.Conn.put_req_header("content-type", @content_type)
+      |> Plug.Conn.put_req_header("date", @date)
+      |> Plug.Conn.put_req_header("authorization", @valid_auth_string)
+    # when the resource with the id can be fetched
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
+    assert load_and_authorize_resource(conn, opts) == expected
+
+    # when the resource with the id cannot be fetched
+    auth_string = "NCSA.HMAC " <> "909090" <> ":" <> "also_the_signature_is_invalid"
+    conn = conn(:post, "/api/auth", %{"auth_id" => "909090"})
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:api_key, nil)
+      |> Plug.Conn.put_req_header("content-type", @content_type)
+      |> Plug.Conn.put_req_header("date", @date)
+      |> Plug.Conn.put_req_header("authorization", auth_string)
+
+    invalid_signature_message = "The signature authorization_id does not match any records. auth_id: 909090"
+    expected = Plug.Conn.assign(conn, :authorized, false) |> Plug.Conn.assign(:error_message, invalid_signature_message)
+    expected = %{expected | assigns: Map.put(expected.assigns, :api_key, nil)}
+    assert load_and_authorize_resource(conn, opts) == expected
+  end
+
+  test "it loads and authorizes the resource with only the signature auth_id" do
     opts = [model: ApiKey]
     conn = conn(:post, "/api/auth", @target_body)
       |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
@@ -351,5 +389,19 @@ defmodule NcsaHmac.PlugTest do
     assert load_and_authorize_resource(conn, opts) == conn
     assert authorize_resource(conn, opts) == conn
     assert load_resource(conn, opts) == conn
+  end
+
+  test "it handles auth_id missing from the request body" do
+    opts = [model: ApiKey, only: :some_action]
+    req_signature = NcsaHmac.Signer.sign(%{"params" => %{}, "method" => "post", "date" => @date, "path" => "/api/auth", "content-type" => "application/json"}, @key_id, @signing_key)
+    conn = conn(:post, "/api/auth", %{})
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: @key_id, signing_key: @signing_key})
+      |> Plug.Conn.put_req_header("content-type", @content_type)
+      |> Plug.Conn.put_req_header("date", @date)
+      |> Plug.Conn.put_req_header("authorization", req_signature)
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
+    assert load_and_authorize_resource(conn, opts) == expected
   end
 end

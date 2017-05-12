@@ -54,6 +54,12 @@ defmodule NcsaHmac.Authentication do
     end
   end
 
+  def auth_id(conn, opts) do
+    [auth_id, _] = Enum.at(Plug.Conn.get_req_header(conn, "authorization"),0)
+    |> unpack_signature!
+    auth_id
+  end
+
   defp unpack_signature!(nil), do: authorization_error("Failed to parse authorization_signature: nil")
   defp unpack_signature!(signature) do
     auth_match = String.match?(signature, @authorization_regexp)

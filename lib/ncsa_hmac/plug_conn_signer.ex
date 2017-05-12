@@ -50,7 +50,7 @@ defmodule NcsaHmac.PlugConnSigner do
   """
 
   def canonicalize_conn(conn) do
-    Enum.join([conn.method, get_header_value(conn, "content-type"), content_digest(conn.params), get_header_value(conn, "date"), conn.request_path], "\n")
+    Enum.join([conn.method, get_header_value(conn, "content-type"), content_digest(get_request_params(conn)), get_header_value(conn, "date"), conn.request_path], "\n")
   end
 
   @doc """
@@ -92,6 +92,13 @@ defmodule NcsaHmac.PlugConnSigner do
     Plug.Conn.get_req_header(conn, key)
   end
 
+  defp get_request_params(conn) do
+    case Map.has_key?(conn.params, "_json") do
+      true -> conn.params["_json"]
+      _ -> conn.params
+    end
+  end
+
   defp set_date do
     {_, iso_time} = Timex.Format.DateTime.Formatter.format(Timex.now, "{ISO:Extended:Z}")
     iso_time
@@ -121,7 +128,6 @@ defmodule NcsaHmac.PlugConnSigner do
 
   """
   defp normalize_parameters(params) do
-    {_, json_params} = JSON.encode params
-    json_params
+    JSON.encode!(params)
   end
 end
