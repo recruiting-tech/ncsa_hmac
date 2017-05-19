@@ -77,9 +77,10 @@ defmodule NcsaHmac.Signer do
   end
 
   @doc """
-  For interoperabiltiy, request parameters are converted to json and sorted
-  by key, so hash computation is unlikely to produce different results on
-  different systems.
+  For interoperabiltiy, request parameters are converted to json and returned
+  in a deterministic order, so hash computation is unlikely to produce
+  different results on different systems.
+  For this reason we use the JSON package rather than Poision.
   """
   def normalize_parameters(params) when is_map(params) do
     case JSON.encode params do

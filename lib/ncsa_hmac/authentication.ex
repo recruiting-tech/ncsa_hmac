@@ -45,7 +45,7 @@ defmodule NcsaHmac.Authentication do
 
   def authenticate!(conn, opts) do
     try do
-      auth_signature = Enum.at(Plug.Conn.get_req_header(conn, "authorization"),0)
+      auth_signature = Enum.at(Plug.Conn.get_req_header(conn, "authorization"), 0)
       [auth_id, signature] = unpack_signature!(auth_signature)
       signing_key = signing_key(conn, opts, auth_id)
       verify_signature!(conn, signature, signing_key)
@@ -54,8 +54,10 @@ defmodule NcsaHmac.Authentication do
     end
   end
 
-  def auth_id(conn, opts) do
-    [auth_id, _] = Enum.at(Plug.Conn.get_req_header(conn, "authorization"),0)
+  def auth_id(conn) do
+    [auth_id, _] = conn
+    |> Plug.Conn.get_req_header("authorization")
+    |> Enum.at(0)
     |> unpack_signature!
     auth_id
   end
@@ -78,8 +80,9 @@ defmodule NcsaHmac.Authentication do
       "" -> :signing_key
       _ -> String.to_atom(opts[:key_field])
     end
-    key_map = resource(conn, opts, auth_id)
-      |> Map.take([signing_key])
+    key_map = conn
+    |> resource(opts, auth_id)
+    |> Map.take([signing_key])
     resource_signing_key = key_map[signing_key]
     unless resource_signing_key do
       authorization_error "The signature authorization_id does not match any records. auth_id: #{auth_id}"

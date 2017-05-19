@@ -1,5 +1,7 @@
-%{"certifi": {:hex, :certifi, "0.4.0", "a7966efb868b179023618d29a407548f70c52466bf1849b9e8ebd0e34b7ea11f", [], [], "hexpm"},
+%{"bunt": {:hex, :bunt, "0.2.0", "951c6e801e8b1d2cbe58ebbd3e616a869061ddadcc4863d0a2182541acae9a38", [:mix], [], "hexpm"},
+  "certifi": {:hex, :certifi, "0.4.0", "a7966efb868b179023618d29a407548f70c52466bf1849b9e8ebd0e34b7ea11f", [], [], "hexpm"},
   "combine": {:hex, :combine, "0.9.1", "5fd778ee77032ae593bf79aedb8519d9e36283e4f869abd98c2d6029ca476db8", [], [], "hexpm"},
+  "credo": {:hex, :credo, "0.7.4", "0c33bcce4d574ce6df163cbc7d1ecb22de65713184355bd3be81cc4ab0ecaafa", [:mix], [{:bunt, "~> 0.2.0", [hex: :bunt, repo: "hexpm", optional: false]}], "hexpm"},
   "decimal": {:hex, :decimal, "1.1.2", "79a769d4657b2d537b51ef3c02d29ab7141d2b486b516c109642d453ee08e00c", [], [], "hexpm"},
   "earmark": {:hex, :earmark, "1.0.1", "2c2cd903bfdc3de3f189bd9a8d4569a075b88a8981ded9a0d95672f6e2b63141", [], [], "hexpm"},
   "ecto": {:hex, :ecto, "2.0.6", "9dcbf819c2a77f67a66b83739b7fcc00b71aaf6c100016db4f798930fa4cfd47", [:mix], [{:db_connection, "~> 1.0", [hex: :db_connection, repo: "hexpm", optional: true]}, {:decimal, "~> 1.1.2 or ~> 1.2", [hex: :decimal, repo: "hexpm", optional: false]}, {:mariaex, "~> 0.8.0", [hex: :mariaex, repo: "hexpm", optional: true]}, {:poison, "~> 1.5 or ~> 2.0", [hex: :poison, repo: "hexpm", optional: true]}, {:poolboy, "~> 1.5", [hex: :poolboy, repo: "hexpm", optional: false]}, {:postgrex, "~> 0.12.0", [hex: :postgrex, repo: "hexpm", optional: true]}, {:sbroker, "~> 1.0-beta", [hex: :sbroker, repo: "hexpm", optional: true]}], "hexpm"},

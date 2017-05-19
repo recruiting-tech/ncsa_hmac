@@ -26,7 +26,7 @@ defmodule NcsaHmac.AuthenticationTest do
     conn = conn(:post, "/api/auth", @target_body)
     |> Plug.Conn.put_req_header("authorization", auth_string)
 
-    assert Authentication.auth_id(conn, @opts) == @key_id
+    assert Authentication.auth_id(conn) == @key_id
   end
 
   test "#auth_id raises an exception when the signature cannot parse" do
@@ -35,7 +35,7 @@ defmodule NcsaHmac.AuthenticationTest do
     |> Plug.Conn.put_req_header("authorization", auth_string)
 
     assert_raise NcsaHmac.AuthorizationError, "Failed to parse authorization_signature: #{auth_string}", fn ->
-      Authentication.auth_id(conn, @opts)
+      Authentication.auth_id(conn)
     end
   end
 

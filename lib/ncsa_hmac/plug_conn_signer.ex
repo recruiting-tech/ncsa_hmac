@@ -73,7 +73,7 @@ defmodule NcsaHmac.PlugConnSigner do
   def authorization(conn, key_id, key_secret, hash_type \\ @default_hash) do
     validate_key!(key_id, "key_id")
     validate_key!(key_secret, "key_secret")
-    "#{@service_name} #{key_id}:#{signature(conn, key_secret)}"
+    "#{@service_name} #{key_id}:#{signature(conn, key_secret, hash_type)}"
   end
 
   defp content_digest(params) when params == %{}, do: ""
@@ -107,7 +107,6 @@ defmodule NcsaHmac.PlugConnSigner do
   defp set_headers(conn, key_id, key_secret, hash_type) do
     signature = authorization(conn, key_id, key_secret, hash_type)
     digest = content_digest(conn.params)
-    date = get_header_value(conn, "date")
     conn
       |> Plug.Conn.put_req_header("content-digest", digest)
       |> Plug.Conn.put_req_header("authorization", signature)
@@ -121,12 +120,10 @@ defmodule NcsaHmac.PlugConnSigner do
     end
   end
 
-  @doc """
-  For interoperabiltiy, request parameters are converted to json and sorted
-  by key, so hash computation is unlikely to produce different results on
-  different systems.
-
-  """
+  # For interoperabiltiy, request parameters are converted to json and returned
+  # in a deterministic order, so hash computation is unlikely to produce
+  # different results on different systems.
+  # For this reason we use the JSON package rather than Poision.
   defp normalize_parameters(params) do
     JSON.encode!(params)
   end
