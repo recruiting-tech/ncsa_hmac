@@ -3,7 +3,7 @@ defmodule NcsaHmac.Mixfile do
 
   def project do
     [app: :ncsa_hmac,
-     version: release_version,
+     version: release_version(),
      elixir: "~> 1.0",
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,

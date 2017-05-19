@@ -54,7 +54,7 @@ defmodule NcsaHmac.Authentication do
     end
   end
 
-  def auth_id(conn, opts) do
+  def auth_id(conn) do
     [auth_id, _] = Enum.at(Plug.Conn.get_req_header(conn, "authorization"),0)
     |> unpack_signature!
     auth_id

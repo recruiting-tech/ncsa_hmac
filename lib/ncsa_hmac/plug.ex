@@ -243,7 +243,7 @@ defmodule NcsaHmac.Plug do
     field_name = (opts[:id_field] || "id")
     resource_id = get_resource_id(conn, opts)
     resource = case resource_id do
-      nil -> NcsaHmac.Authentication.auth_id(conn, opts)
+      nil -> NcsaHmac.Authentication.auth_id(conn)
       _ -> resource_id
     end
     %{String.to_atom(field_name) => resource}
