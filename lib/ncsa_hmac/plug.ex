@@ -77,7 +77,7 @@ defmodule NcsaHmac.Plug do
     conn
     |> action_valid?(opts)
     |> case do
-      true  -> _load_resource(conn, opts) |> handle_not_found(opts)
+      true  -> conn |> _load_resource(opts) |> handle_not_found(opts)
       false -> conn
     end
   end
@@ -134,7 +134,7 @@ defmodule NcsaHmac.Plug do
     conn
     |> action_valid?(opts)
     |> case do
-      true  -> _authorize_resource(conn, opts) |> handle_unauthorized(opts)
+      true  -> conn |> _authorize_resource(opts) |> handle_unauthorized(opts)
       false -> conn
     end
   end
@@ -143,12 +143,14 @@ defmodule NcsaHmac.Plug do
     authentication = NcsaHmac.Authentication.authenticate!(conn, opts)
     case authentication do
       {:ok, true}  ->
-        Plug.Conn.assign(conn, :authorized, true)
-          |> purge_resource(opts)
+        conn
+        |> Plug.Conn.assign(:authorized, true)
+        |> purge_resource(opts)
       {:error, message} ->
-        Plug.Conn.assign(conn, :authorized, false)
-          |> Plug.Conn.assign(:error_message, message)
-          |> purge_resource(opts)
+        conn
+        |> Plug.Conn.assign(:authorized, false)
+        |> Plug.Conn.assign(:error_message, message)
+        |> purge_resource(opts)
     end
   end
 
