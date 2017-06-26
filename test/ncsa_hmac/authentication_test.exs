@@ -49,8 +49,6 @@ defmodule NcsaHmac.AuthenticationTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", auth_string)
 
-    # sig = NcsaHmac.PlugConnSigner.signature(conn, "base64_signing_key")
-    # IO.inspect sig
     authenticated_conn = Authentication.authenticate!(conn, @opts)
     assert authenticated_conn == {:ok, true}
   end
@@ -65,8 +63,6 @@ defmodule NcsaHmac.AuthenticationTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", auth_string)
 
-    # sig = NcsaHmac.PlugConnSigner.signature(conn, "base64_signing_key")
-    # IO.inspect sig
     authenticated_conn = Authentication.authenticate!(conn, @opts)
     assert authenticated_conn == {:ok, true}
   end

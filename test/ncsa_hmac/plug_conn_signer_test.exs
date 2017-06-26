@@ -139,7 +139,7 @@ defmodule NcsaHmac.PlugConnSignerTest do
     assert signature == expected_sha256_signature
   end
 
-  test "GET request computed signature matches a known SHA384 signature ignoring the body" do
+  test "GET request signature matches a known SHA384 signature ignoring the body" do
     expected_sha384_signature = "7LyUjI1/52w+xToIm+OAzk02OseektiwCHonfJANHSN+QXRwBWmLxt3bLIjOakIL"
     conn = conn(:get, "/api/auth?queryString=something", @target_body)
     conn = Plug.Conn.put_req_header(conn, "content-type", @signature_params["content-type"])
