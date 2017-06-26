@@ -27,20 +27,26 @@ defmodule NcsaHmac.PlugConnSignerTest do
   }
 
   test "do not set content-digest if the body is empty" do
-    conn = conn(:get, "/api/auth", "")
+    conn = conn(:put, "/api/auth", "")
+    signed_conn =  PlugConnSigner.sign!(conn, @key_id, @signing_key)
+    assert Plug.Conn.get_req_header(signed_conn, "content-digest") == [""]
+  end
+
+  test "do not set content-digest if the body is empty map" do
+    conn = conn(:put, "/api/auth", %{})
     signed_conn =  PlugConnSigner.sign!(conn, @key_id, @signing_key)
     assert Plug.Conn.get_req_header(signed_conn, "content-digest") == [""]
   end
 
   test "calculate a MD5 digest of the message body/params" do
-    conn = conn(:get, "/api/auth", @target_body)
+    conn = conn(:put, "/api/auth", @target_body)
     signed_conn =  PlugConnSigner.sign!(conn, @key_id, @signing_key)
     assert Plug.Conn.get_req_header(signed_conn, "content-digest") == [@target_md5_hash]
   end
 
   test "MD5 digest calculations and json encoding match" do
     req_map = %{"abc" => 123, "def" => 456}
-    conn = conn(:get, "/api/auth", req_map)
+    conn = conn(:put, "/api/auth", req_map)
     md5_hash = Base.encode16(:erlang.md5("{\"abc\":123,\"def\":456}"), case: :lower)
     signed_conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
     signature = Plug.Conn.get_req_header(signed_conn, "content-digest")
@@ -50,7 +56,7 @@ defmodule NcsaHmac.PlugConnSignerTest do
 
   test "calculate the MD5 hash from the map values only" do
     req_map = %{"abc" => 123, "def" => 456, 123 => 789}
-    conn = conn(:get, "/api/auth", req_map)
+    conn = conn(:post, "/api/auth", req_map)
     md5_hash = Base.encode16(:erlang.md5("{\"123\":789,\"abc\":123,\"def\":456}"), case: :lower)
     signed_conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
     signature = Plug.Conn.get_req_header(signed_conn, "content-digest")
@@ -59,7 +65,7 @@ defmodule NcsaHmac.PlugConnSignerTest do
 
   test "calculate the MD5 hash from the map with string and integer values AND sort the keys alphabetically" do
     req_map = %{"def" => "ghi", "abc" => 123, 123 => "789"}
-    conn = conn(:get, "/api/auth", req_map)
+    conn = conn(:put, "/api/auth", req_map)
     md5_hash = Base.encode16(:erlang.md5("{\"123\":\"789\",\"abc\":123,\"def\":\"ghi\"}"), case: :lower)
     signed_conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
     signature = Plug.Conn.get_req_header(signed_conn, "content-digest")
@@ -68,7 +74,7 @@ defmodule NcsaHmac.PlugConnSignerTest do
 
   test "calculate the MD5 hash from the map values with a nested list AND sort the keys alphabetically" do
     req_map = %{"def" => 456, "abc" => 123, 123 => [1,2,3]}
-    conn = conn(:get, "/api/auth", req_map)
+    conn = conn(:post, "/api/auth", req_map)
     md5_hash = Base.encode16(:erlang.md5("{\"123\":[1,2,3],\"abc\":123,\"def\":456}"), case: :lower)
     signed_conn = PlugConnSigner.sign!(conn, @key_id, @signing_key)
     signature = Plug.Conn.get_req_header(signed_conn, "content-digest")
@@ -84,15 +90,27 @@ defmodule NcsaHmac.PlugConnSignerTest do
   end
 
   test "canonical message content" do
-    conn = conn(:get, "/api/auth", @target_body)
+    conn = conn(:head, "/api/auth", @target_body)
     date = "1234"
     conn = Plug.Conn.put_req_header(conn, "date", date)
     canonical = PlugConnSigner.canonicalize_conn(conn)
-    assert canonical == "GET" <> "\n"
+    assert canonical == "HEAD" <> "\n"
       <> "multipart/mixed; charset: utf-8" <> "\n"
       <> @target_md5_hash <> "\n"
       <> date <> "\n"
       <> "/api/auth"
+  end
+
+  test "GET canonical message content with query_string ignores the request body" do
+    conn = conn(:get, "/api/auth?queryString=something", @target_body)
+    date = "1234"
+    conn = Plug.Conn.put_req_header(conn, "date", date)
+    canonical = PlugConnSigner.canonicalize_conn(conn, "GET")
+    assert canonical == "GET" <> "\n"
+      <> "multipart/mixed; charset: utf-8" <> "\n"
+      <> "\n"
+      <> date <> "\n"
+      <> "/api/auth?queryString=something"
   end
 
   test "computed signature matches a known SHA512 signature" do
@@ -119,6 +137,15 @@ defmodule NcsaHmac.PlugConnSignerTest do
     conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
     signature = PlugConnSigner.signature(conn, @signing_key, :sha256)
     assert signature == expected_sha256_signature
+  end
+
+  test "GET request computed signature matches a known SHA384 signature ignoring the body" do
+    expected_sha384_signature = "7LyUjI1/52w+xToIm+OAzk02OseektiwCHonfJANHSN+QXRwBWmLxt3bLIjOakIL"
+    conn = conn(:get, "/api/auth?queryString=something", @target_body)
+    conn = Plug.Conn.put_req_header(conn, "content-type", @signature_params["content-type"])
+    conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
+    signature = PlugConnSigner.signature(conn, @signing_key, :sha384)
+    assert signature == expected_sha384_signature
   end
 
   test "computed signature matches when content_type == '' " do
