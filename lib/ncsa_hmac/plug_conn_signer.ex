@@ -45,10 +45,17 @@ defmodule NcsaHmac.PlugConnSigner do
 
   @doc """
   Create a canonical string from the request that will be used to computed
-  the signature.
-
+  the signature. GET request must be canoncalized correctly using only the base path
+  and ignoring both the query string and params that Plug.Conn adds when it
+  parses the query_string.
+  TODO: Consider adding HMAC signing support for HEAD and DELETE requests.
   """
 
+  def canonicalize_conn(conn, "GET") do
+    empty_body_digest = ""
+    Enum.join([conn.method, get_header_value(conn, "content-type"), empty_body_digest, get_header_value(conn, "date"), conn.request_path], "\n")
+  end
+  def canonicalize_conn(conn, _method), do: canonicalize_conn(conn)
   def canonicalize_conn(conn) do
     Enum.join([conn.method, get_header_value(conn, "content-type"), content_digest(get_request_params(conn)), get_header_value(conn, "date"), conn.request_path], "\n")
   end
@@ -60,7 +67,7 @@ defmodule NcsaHmac.PlugConnSigner do
   """
   def signature(conn, key_secret, hash_type \\ @default_hash) do
     Base.encode64(
-      :crypto.hmac(hash_type, key_secret, canonicalize_conn(conn))
+      :crypto.hmac(hash_type, key_secret, canonicalize_conn(conn, conn.method))
     )
   end
 
