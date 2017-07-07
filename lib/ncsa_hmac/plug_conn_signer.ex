@@ -52,8 +52,7 @@ defmodule NcsaHmac.PlugConnSigner do
 
   def canonicalize_conn(conn, "GET") do
     empty_body_digest = ""
-    path_with_query_string = conn.request_path <> "?" <> conn.query_string
-    Enum.join([conn.method, get_header_value(conn, "content-type"), empty_body_digest, get_header_value(conn, "date"), path_with_query_string], "\n")
+    Enum.join([conn.method, get_header_value(conn, "content-type"), empty_body_digest, get_header_value(conn, "date"), conn.request_path], "\n")
   end
   def canonicalize_conn(conn, _method), do: canonicalize_conn(conn)
   def canonicalize_conn(conn) do

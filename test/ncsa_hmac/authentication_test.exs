@@ -39,8 +39,8 @@ defmodule NcsaHmac.AuthenticationTest do
     end
   end
 
-  test "#authenticate! validates a GET using the query string, ignoring the body." do
-    expected_get_signature = "yOblB6SohEtEXTgwlH9piqNh2O+rBlxULe7T6zUFvpGEazq/1nL+K7mgLS/Y+TZT8np+KA9Du1fIfI2Fu5v4PQ=="
+  test "#authenticate! validates a GET using the path, ignoring the body and query string" do
+    expected_get_signature = "tOyzNxabCQeTIIa3hJj1Ar5NrFh1n3HjKic6uuPtXdEg4gA52vyWvxvlhYPxGv1d0hhh5spRDwLKg7eePOTozA=="
     auth_string = "NCSA.HMAC " <> @key_id <> ":" <> expected_get_signature
     conn = conn(:get, "/api/auth?with=query_string", %{ishould: "be_ignored"})
       |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
@@ -49,12 +49,12 @@ defmodule NcsaHmac.AuthenticationTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", auth_string)
 
-    authenticated_conn = Authentication.authenticate!(conn, @opts)
-    assert authenticated_conn == {:ok, true}
+    authenticated_struct = Authentication.authenticate!(conn, @opts)
+    assert authenticated_struct == {:ok, true}
   end
 
   test "#authenticate! validates a GET with no body or query_string." do
-    expected_get_signature = "9zv3a7j3Bmp4MlkoWEUbpclD3bX4i9SKu1d/W3hZtPCEuha304NGXP2HLLS+FsDV6g8+JDi/r1+2+c80cQscRQ=="
+    expected_get_signature = "tOyzNxabCQeTIIa3hJj1Ar5NrFh1n3HjKic6uuPtXdEg4gA52vyWvxvlhYPxGv1d0hhh5spRDwLKg7eePOTozA=="
     auth_string = "NCSA.HMAC " <> @key_id <> ":" <> expected_get_signature
     conn = conn(:get, "/api/auth")
       |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
@@ -63,8 +63,8 @@ defmodule NcsaHmac.AuthenticationTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", auth_string)
 
-    authenticated_conn = Authentication.authenticate!(conn, @opts)
-    assert authenticated_conn == {:ok, true}
+    authenticated_struct = Authentication.authenticate!(conn, @opts)
+    assert authenticated_struct == {:ok, true}
   end
 
   test "#authenticate! is true for a valid signature" do
@@ -76,8 +76,8 @@ defmodule NcsaHmac.AuthenticationTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", auth_string)
 
-    authenticated_conn = Authentication.authenticate!(conn, @opts)
-    assert authenticated_conn == {:ok, true}
+    authenticated_struct = Authentication.authenticate!(conn, @opts)
+    assert authenticated_struct == {:ok, true}
   end
 
   test "#authenticate! can get the signing_key from a user-defined field" do
@@ -90,8 +90,8 @@ defmodule NcsaHmac.AuthenticationTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", auth_string)
 
-    authenticated_conn = Authentication.authenticate!(conn, opts)
-    assert authenticated_conn == {:ok, true}
+    authenticated_struct = Authentication.authenticate!(conn, opts)
+    assert authenticated_struct == {:ok, true}
   end
 
   test "#authenticate! falls back to :signing_key by default" do
@@ -104,13 +104,13 @@ defmodule NcsaHmac.AuthenticationTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", auth_string)
 
-    authenticated_conn = Authentication.authenticate!(conn, opts)
-    assert authenticated_conn == {:ok, true}
+    authenticated_struct = Authentication.authenticate!(conn, opts)
+    assert authenticated_struct == {:ok, true}
 
     # falls back to :signing_key when empty string
     opts = [model: AuthKey, id_name: "auth_id", id_field: "auth_id", key_field: ""]
-    authenticated_conn = Authentication.authenticate!(conn, opts)
-    assert authenticated_conn == {:ok, true}
+    authenticated_struct = Authentication.authenticate!(conn, opts)
+    assert authenticated_struct == {:ok, true}
   end
 
   test "can #authenticate! a valid sha384 signature" do
@@ -123,8 +123,8 @@ defmodule NcsaHmac.AuthenticationTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", auth_string)
 
-    authenticated_conn = Authentication.authenticate!(conn, @opts)
-    assert authenticated_conn == {:ok, true}
+    authenticated_struct = Authentication.authenticate!(conn, @opts)
+    assert authenticated_struct == {:ok, true}
   end
 
   test "can #authenticate! a valid sha256 signature" do
@@ -136,9 +136,9 @@ defmodule NcsaHmac.AuthenticationTest do
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", auth_string)
-    authenticated_conn = Authentication.authenticate!(conn, @opts)
+    authenticated_struct = Authentication.authenticate!(conn, @opts)
 
-    assert authenticated_conn == {:ok, true}
+    assert authenticated_struct == {:ok, true}
   end
 
   test "#authenticate! fails to validate an invalid signature" do
@@ -151,8 +151,8 @@ defmodule NcsaHmac.AuthenticationTest do
       |> Plug.Conn.put_req_header("date", @date)
       |> Plug.Conn.put_req_header("authorization", auth_string)
 
-    authenticated_conn = Authentication.authenticate!(conn, @opts)
-    assert authenticated_conn == {:error, "Error: computed signature does not match header signature: not_a_valid_signature"}
+    authenticated_struct = Authentication.authenticate!(conn, @opts)
+    assert authenticated_struct == {:error, "Error: computed signature does not match header signature: not_a_valid_signature"}
   end
 
   test "#authenticate! raises AuthIdError when there is no repo assigned" do
@@ -162,8 +162,8 @@ defmodule NcsaHmac.AuthenticationTest do
     conn = Plug.Conn.put_req_header(conn, "content-type", @content_type)
     conn = Plug.Conn.put_req_header(conn, "date", @date)
     conn = Plug.Conn.put_req_header(conn, "authorization", auth_string)
-    authenticated_conn = Authentication.authenticate!(conn, @opts)
-    assert authenticated_conn == {:error, "The signature authorization_id does not match any records. auth_id: #{@key_id}"}
+    authenticated_struct = Authentication.authenticate!(conn, @opts)
+    assert authenticated_struct == {:error, "The signature authorization_id does not match any records. auth_id: #{@key_id}"}
   end
 
   test "#authenticate! raises AuthorizationError if it cannot parse the signature" do
@@ -173,15 +173,15 @@ defmodule NcsaHmac.AuthenticationTest do
     conn = Plug.Conn.put_req_header(conn, "content-type", @content_type)
     conn = Plug.Conn.put_req_header(conn, "date", @date)
     conn = Plug.Conn.put_req_header(conn, "authorization", auth_string)
-    authenticated_conn = Authentication.authenticate!(conn, @opts)
-    assert authenticated_conn == {:error, "Failed to parse authorization_signature: #{auth_string}"}
+    authenticated_struct = Authentication.authenticate!(conn, @opts)
+    assert authenticated_struct == {:error, "Failed to parse authorization_signature: #{auth_string}"}
   end
 
   test "#authenticate! raises AuthorizationError if there is no signature" do
     conn = conn(:post, "/api/auth", @target_body)
     conn = Plug.Conn.put_req_header(conn, "content-type", @content_type)
     conn = Plug.Conn.put_req_header(conn, "date", @date)
-    authenticated_conn = Authentication.authenticate!(conn, @opts)
-    assert authenticated_conn == {:error, "Failed to parse authorization_signature: nil"}
+    authenticated_struct = Authentication.authenticate!(conn, @opts)
+    assert authenticated_struct == {:error, "Failed to parse authorization_signature: nil"}
   end
 end

@@ -101,7 +101,7 @@ defmodule NcsaHmac.PlugConnSignerTest do
       <> "/api/auth"
   end
 
-  test "GET canonical message content with query_string ignores the request body" do
+  test "GET canonical message content with query_string ignores the request body and query string" do
     conn = conn(:get, "/api/auth?queryString=something", @target_body)
     date = "1234"
     conn = Plug.Conn.put_req_header(conn, "date", date)
@@ -110,7 +110,7 @@ defmodule NcsaHmac.PlugConnSignerTest do
       <> "multipart/mixed; charset: utf-8" <> "\n"
       <> "\n"
       <> date <> "\n"
-      <> "/api/auth?queryString=something"
+      <> "/api/auth"
   end
 
   test "computed signature matches a known SHA512 signature" do
@@ -139,8 +139,8 @@ defmodule NcsaHmac.PlugConnSignerTest do
     assert signature == expected_sha256_signature
   end
 
-  test "GET request signature matches a known SHA384 signature ignoring the body" do
-    expected_sha384_signature = "7LyUjI1/52w+xToIm+OAzk02OseektiwCHonfJANHSN+QXRwBWmLxt3bLIjOakIL"
+  test "GET request signature matches a known SHA384 signature ignoring the body and the query string" do
+    expected_sha384_signature = "LabF5wrjPKo4BzXYONqYFJWxOzDwac7/PyRLwteWNbEfYBnBAq5cCAXmxKIJHV/A"
     conn = conn(:get, "/api/auth?queryString=something", @target_body)
     conn = Plug.Conn.put_req_header(conn, "content-type", @signature_params["content-type"])
     conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
