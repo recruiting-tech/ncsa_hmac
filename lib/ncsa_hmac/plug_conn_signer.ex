@@ -45,8 +45,9 @@ defmodule NcsaHmac.PlugConnSigner do
 
   @doc """
   Create a canonical string from the request that will be used to computed
-  the signature. GET request must be canoncalized correctly using the query string in the path
-  and ignoring the params that Plug.Conn adds when it parses the query_string.
+  the signature. GET request must be canoncalized correctly using only the base path
+  and ignoring both the query string and params that Plug.Conn adds when it
+  parses the query_string.
   TODO: Consider adding HMAC signing support for HEAD and DELETE requests.
   """
 
