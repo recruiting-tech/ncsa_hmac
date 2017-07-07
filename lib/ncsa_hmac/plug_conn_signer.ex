@@ -83,6 +83,8 @@ defmodule NcsaHmac.PlugConnSigner do
     "#{@service_name} #{key_id}:#{signature(conn, key_secret, hash_type)}"
   end
 
+  defp content_digest(""), do: ""
+  defp content_digest(%Plug.Conn.Unfetched{aspect: :params}), do: ""
   defp content_digest(params) when params == %{}, do: ""
   defp content_digest(params) do
     Base.encode16(:erlang.md5(normalize_parameters(params)), case: :lower)
