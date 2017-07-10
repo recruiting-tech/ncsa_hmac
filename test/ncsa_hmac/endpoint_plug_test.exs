@@ -65,6 +65,36 @@ defmodule NcsaHmac.EndpointPlugTest do
       NcsaHmac.EndpointPlug.call(conn, opts)
     end
 
+    test "The plug module returns the conn when the path is different" do
+      conn = conn(:post, "/some/path")
+      |> Plug.Conn.put_req_header("content-type", @content_type)
+      |> Plug.Conn.put_req_header("date", @date)
+      |> Plug.Conn.put_req_header("authorization", @req_signature)
+
+      opts = default_opts(%{mount: ["some", "other", "path"], model: ApiKey})
+      conn = NcsaHmac.EndpointPlug.call(conn, opts)
+      assert conn.status == nil
+      assert conn.state == :unset
+      assert conn.assigns == %{}
+      assert conn.private == %{}
+    end
+
+    test "The plug module only matches :mount to the beginning of the path and ignores anything after" do
+      conn = conn(:post, "/some/path/with/additional/params")
+      |> Plug.Conn.put_req_header("content-type", @content_type)
+      |> Plug.Conn.put_req_header("date", @date)
+      |> Plug.Conn.put_req_header("authorization", @req_signature)
+
+      opts = default_opts(%{mount: ["some", "path", "with"], model: ApiKey})
+      conn = NcsaHmac.EndpointPlug.call(conn, opts)
+      assert conn.status == 401
+      refute conn.assigns.authorized
+      error_message = "The signature authorization_id does not match any records. auth_id: 1"
+      assert conn.assigns.error_message == error_message
+      error_body = "{\"errors\":[{\"detail\":\"#{error_message}\",\"message\":\"Unauthorized\"}]}"
+      assert conn.resp_body == error_body
+    end
+
     test "The plug module returns a 401 without authentication" do
       conn = conn(:post, "/some/path")
       |> Plug.Conn.put_req_header("content-type", @content_type)
@@ -109,6 +139,23 @@ defmodule NcsaHmac.EndpointPlugTest do
       |> Plug.Conn.put_req_header("authorization", signature)
       |> call(opts)
 
+      refute conn.status == 401
+      assert conn.assigns.authorized
+      assert conn.private.auth_id == "auth_id_valid"
+    end
+
+    test "The authentication works with a partial path match" do
+      params = %{"post_id" => 1}
+      request_details = %{"method" => "POST", "date" => @date, "content-type" => "application/json", "path" => "/some/path/with/additional/params", "params" => params}
+
+      signature = NcsaHmac.Signer.sign(request_details, "auth_id_valid", "signing_key")
+      opts = default_opts(%{mount: ["some", "path", "with"], model: ApiKey})
+      conn = conn(:post, "/some/path/with/additional/params", params)
+      |> Plug.Conn.put_req_header("content-type", @content_type)
+      |> Plug.Conn.put_req_header("date", @date)
+      |> Plug.Conn.put_req_header("authorization", signature)
+
+      conn = NcsaHmac.EndpointPlug.call(conn, opts)
       refute conn.status == 401
       assert conn.assigns.authorized
       assert conn.private.auth_id == "auth_id_valid"

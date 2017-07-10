@@ -9,9 +9,9 @@ defmodule NcsaHmac.EndpointPlug do
 
   def call(conn, opts) do
     mount = Dict.get(opts, :mount)
-    case conn.path_info do
-      ^mount -> authorize_resource(conn, opts)
-      _ -> conn
+    case match_mount?(conn, opts) do
+      true -> authorize_resource(conn, opts)
+      false -> conn
     end
   end
 
@@ -128,5 +128,11 @@ defmodule NcsaHmac.EndpointPlug do
 
   defp error_json(error_message) do
     JSON.encode! %{errors: [%{message: "Unauthorized", detail: error_message}]}
+  end
+
+  defp match_mount?(conn, opts) do
+    path = conn.path_info
+    mount = Dict.get(opts, :mount)
+    mount == Enum.slice(path, 0, Enum.count(mount))
   end
 end
