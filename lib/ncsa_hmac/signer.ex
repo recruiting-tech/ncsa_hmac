@@ -90,6 +90,7 @@ defmodule NcsaHmac.Signer do
   end
   def normalize_parameters(params), do: params
 
+  defp content_digest(""), do: ""
   defp content_digest(params) when params == %{}, do: ""
   defp content_digest(params) do
     Base.encode16(:erlang.md5(normalize_parameters(params)), case: :lower)

@@ -222,21 +222,20 @@ defmodule NcsaHmac.Plug do
 
   defp fetch_resource(conn, opts) do
     repo = Application.get_env(:ncsa_hmac, :repo)
-    get_map_args = get_map_args(conn, opts)
-
+    map_args = get_map_args(conn, opts)
     conn.assigns
     |> Map.fetch(resource_name(opts)) # check if a resource is already loaded at the key
     |> case do
       :error ->
-        repo.get_by(opts[:model], get_map_args)
+        repo.get_by(opts[:model], map_args)
       {:ok, nil} ->
-        repo.get_by(opts[:model], get_map_args)
+        repo.get_by(opts[:model], map_args)
       {:ok, resource} ->
         case (resource.__struct__ == opts[:model]) do
           true  -> # A resource of the type passed as opts[:model] is already loaded; do not clobber it
             resource
           false ->
-            repo.get_by(opts[:model], get_map_args)
+            repo.get_by(opts[:model], map_args)
         end
     end
   end
@@ -339,5 +338,4 @@ defmodule NcsaHmac.Plug do
       nil        -> conn
     end
   end
-
 end
