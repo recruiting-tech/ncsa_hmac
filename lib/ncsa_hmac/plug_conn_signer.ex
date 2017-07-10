@@ -57,7 +57,7 @@ defmodule NcsaHmac.PlugConnSigner do
   end
   def canonicalize_conn(conn, _method), do: canonicalize_conn(conn)
   def canonicalize_conn(conn) do
-    Enum.join([conn.method, get_header_value(conn, "content-type"), content_digest(get_request_params(conn)), get_header_value(conn, "date"), conn.request_path], "\n")
+    Enum.join([conn.method, get_header_value(conn, "content-type"), content_digest(conn, get_request_params(conn)), get_header_value(conn, "date"), conn.request_path], "\n")
   end
 
   @doc """
@@ -83,10 +83,12 @@ defmodule NcsaHmac.PlugConnSigner do
     "#{@service_name} #{key_id}:#{signature(conn, key_secret, hash_type)}"
   end
 
-  defp content_digest(""), do: ""
-  defp content_digest(%Plug.Conn.Unfetched{aspect: :params}), do: ""
-  defp content_digest(params) when params == %{}, do: ""
-  defp content_digest(params) do
+  defp content_digest(_conn, ""), do: ""
+  defp content_digest(conn, %Plug.Conn.Unfetched{aspect: :params}) do
+    Base.encode16(:erlang.md5(conn.private.raw_body), case: :lower)
+  end
+  defp content_digest(_conn, params) when params == %{}, do: ""
+  defp content_digest(_conn, params) do
     Base.encode16(:erlang.md5(normalize_parameters(params)), case: :lower)
   end
 
@@ -115,7 +117,7 @@ defmodule NcsaHmac.PlugConnSigner do
 
   defp set_headers(conn, key_id, key_secret, hash_type) do
     signature = authorization(conn, key_id, key_secret, hash_type)
-    digest = content_digest(conn.params)
+    digest = content_digest(conn, conn.params)
     conn
       |> Plug.Conn.put_req_header("content-digest", digest)
       |> Plug.Conn.put_req_header("authorization", signature)
