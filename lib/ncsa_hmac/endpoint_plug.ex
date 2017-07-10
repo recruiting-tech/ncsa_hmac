@@ -3,12 +3,11 @@ defmodule NcsaHmac.EndpointPlug do
   import Plug.Conn
 
   def init(opts) do
-    %{id_name: "auth_id", id_field: "auth_id", model: ApiKey, key_field: "signing_key"}
+    %{id_name: "auth_id", id_field: "auth_id", key_field: "signing_key"}
     |> Map.merge(opts)
   end
 
   def call(conn, opts) do
-    mount = Dict.get(opts, :mount)
     case match_mount?(conn, opts) do
       true -> authorize_resource(conn, opts)
       false -> conn
@@ -54,8 +53,9 @@ defmodule NcsaHmac.EndpointPlug do
     end
   end
 
-  defp purge_resource(conn, opts),
-    do: %{conn | assigns: Map.put(conn.assigns, resource_name(opts), nil)}
+  defp purge_resource(conn, opts) do
+    %{conn | assigns: Map.put(conn.assigns, resource_name(opts), nil)}
+  end
 
   defp fetch_resource(conn, opts) do
     repo = Application.get_env(:ncsa_hmac, :repo)
