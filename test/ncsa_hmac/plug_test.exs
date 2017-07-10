@@ -1,13 +1,9 @@
-
 defmodule NcsaHmac.PlugTest do
-  Code.load_file("test/support/repo_setup.ex")
   use ExUnit.Case, async: true
   use Plug.Test
   import NcsaHmac.Plug
 
   @moduletag timeout: 100000000
-
-  Application.put_env :ncsa_hmac, :repo, Repo
 
   test "it loads the db resource correctly in different scenarios" do
     opts = [model: ApiKey]

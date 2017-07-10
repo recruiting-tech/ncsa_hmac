@@ -1,5 +1,4 @@
 defmodule NcsaHmac.EndpointPlugTest do
-  Code.load_file("test/support/repo_setup.ex")
   use ExUnit.Case, async: true
   use Plug.Test
   import NcsaHmac.EndpointPlug
@@ -10,11 +9,6 @@ defmodule NcsaHmac.EndpointPlugTest do
   @content_type "application/json"
   @key_id "some_auth_id"
   @signing_key "some_signing_key"
-
-  Application.put_env :ncsa_hmac, :repo, Repo
-  # setup do
-  #   Application.put_env :ncsa_hmac, :repo, Repo
-  # end
 
   describe "authorize_resource/2" do
     test "it assigns the unparsed request body to :raw_body" do
@@ -61,8 +55,6 @@ defmodule NcsaHmac.EndpointPlugTest do
   end
 
   describe "init/1 and call/2" do
-    # Application.put_env :ncsa_hmac, :repo, Repo
-
     test "The plug module :call works without exceptions" do
       conn = conn(:post, "/some/path")
       |> Plug.Conn.put_req_header("content-type", @content_type)

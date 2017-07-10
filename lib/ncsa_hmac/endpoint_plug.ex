@@ -1,6 +1,5 @@
 defmodule NcsaHmac.EndpointPlug do
   import Ecto.Query
-  import Keyword, only: [has_key?: 2]
   import Plug.Conn
 
   def init(opts) do
