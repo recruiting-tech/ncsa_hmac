@@ -50,18 +50,6 @@ defmodule NcsaHmac.PlugConnSigner do
   parses the query_string.
   TODO: Consider adding HMAC signing support for HEAD and DELETE requests.
   """
-
-  def canonicalize_conn(conn, "GET") do
-    empty_body_digest = ""
-    NcsaHmac.Canonical.string(
-      conn.method,
-      conn.request_path,
-      get_header_value(conn, "date"),
-      empty_body_digest,
-      get_header_value(conn, "content-type")
-    )
-  end
-  def canonicalize_conn(conn, _method), do: canonicalize_conn(conn)
   def canonicalize_conn(conn) do
     NcsaHmac.Canonical.string(
       conn.method,
@@ -79,7 +67,7 @@ defmodule NcsaHmac.PlugConnSigner do
   """
   def signature(conn, key_secret, hash_type \\ @default_hash) do
     Base.encode64(
-      :crypto.hmac(hash_type, key_secret, canonicalize_conn(conn, conn.method))
+      :crypto.hmac(hash_type, key_secret, canonicalize_conn(conn))
     )
   end
 

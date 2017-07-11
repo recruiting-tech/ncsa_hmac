@@ -105,7 +105,7 @@ defmodule NcsaHmac.PlugConnSignerTest do
     conn = conn(:get, "/api/auth?queryString=something", @target_body)
     date = "1234"
     conn = Plug.Conn.put_req_header(conn, "date", date)
-    canonical = PlugConnSigner.canonicalize_conn(conn, "GET")
+    canonical = PlugConnSigner.canonicalize_conn(conn)
     assert canonical == "GET" <> "\n"
       <> "multipart/mixed; charset: utf-8" <> "\n"
       <> "\n"
