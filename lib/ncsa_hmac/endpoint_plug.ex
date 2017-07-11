@@ -1,12 +1,26 @@
 defmodule NcsaHmac.EndpointPlug do
-  import Ecto.Query
   import Plug.Conn
 
+  @moduledoc """
+  The EndpointPlug module provides functions to authenticate a web request at the Endpoint level.
+  This allows the user to removal all auth configuration from the Controller level.
+  """
+
+  @doc """
+  Set default opts values.
+  """
   def init(opts) do
     %{id_name: "auth_id", id_field: "auth_id", key_field: "signing_key"}
     |> Map.merge(opts)
   end
 
+  @doc """
+  Comply with the module plug standard. Take a conn and optional map (opts) as arguments.
+  The :mount list is configured in the endpoint. Will match the beginning of the
+  request path up to the mount list. This will greedily match all methods and routes
+  with additional path parameters. If the conn.path_info list does not match the opts:mount
+  list, the conn will be returned to the endpoint for further processing.
+  """
   def call(conn, opts) do
     case match_mount?(conn, opts) do
       true -> authorize_resource(conn, opts)
@@ -14,6 +28,15 @@ defmodule NcsaHmac.EndpointPlug do
     end
   end
 
+  @doc """
+  :preprocess_conn will set the raw request body into :private.raw_body on the conn.
+  :assign_resource_id will set the auth_id into :private at the opts[:field_name] key.
+  :load_resource will query the approriate model and repo based on opts values.
+  :authorize_request will validate the request authorization key againt the request
+  details. See NcsaHmac.Canonical for specifics.
+  :purge_resource will set the :assigns.authorized value and remove the model from
+  the conn request struct.
+  """
   def authorize_resource(conn, opts) do
     try do
       conn
