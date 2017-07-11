@@ -54,15 +54,16 @@ defmodule NcsaHmac.Signer do
   """
 
   def canonicalize_request(request_details) do
-    request_details = request_details |> set_request_date
-      |> Map.put("content-digest", content_digest(request_details["params"]))
-    Enum.join([
-      String.upcase(request_details["method"]),
-      request_details["content-type"],
-      request_details["content-digest"],
+    request_details = request_details
+    |> set_request_date
+    |> Map.put("content-digest", content_digest(request_details["params"]))
+    NcsaHmac.Canonical.string(
+      request_details["method"],
+      request_details["path"],
       request_details["date"],
-      String.downcase(request_details["path"])
-      ], "\n")
+      request_details["content-digest"],
+      request_details["content-type"]
+    )
   end
 
   @doc """

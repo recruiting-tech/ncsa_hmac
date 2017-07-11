@@ -53,11 +53,23 @@ defmodule NcsaHmac.PlugConnSigner do
 
   def canonicalize_conn(conn, "GET") do
     empty_body_digest = ""
-    Enum.join([conn.method, get_header_value(conn, "content-type"), empty_body_digest, get_header_value(conn, "date"), conn.request_path], "\n")
+    NcsaHmac.Canonical.string(
+      conn.method,
+      conn.request_path,
+      get_header_value(conn, "date"),
+      empty_body_digest,
+      get_header_value(conn, "content-type")
+    )
   end
   def canonicalize_conn(conn, _method), do: canonicalize_conn(conn)
   def canonicalize_conn(conn) do
-    Enum.join([conn.method, get_header_value(conn, "content-type"), content_digest(conn, get_request_params(conn)), get_header_value(conn, "date"), conn.request_path], "\n")
+    NcsaHmac.Canonical.string(
+      conn.method,
+      conn.request_path,
+      get_header_value(conn, "date"),
+      content_digest(conn, get_request_params(conn)),
+      get_header_value(conn, "content-type")
+    )
   end
 
   @doc """
