@@ -58,6 +58,7 @@ defmodule NcsaHmac.AuthenticationTest do
     auth_string = "NCSA.HMAC " <> @key_id <> ":" <> expected_get_signature
     conn = conn(:get, "/api/auth")
       |> Plug.Conn.put_private(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.put_private(:raw_body, "")
       |> Plug.Conn.assign(:api_key, %AuthKey{id: 1, auth_id: "auth_id1", signing_key: "base64_signing_key"})
       |> Plug.Conn.put_req_header("content-type", @content_type)
       |> Plug.Conn.put_req_header("date", @date)
