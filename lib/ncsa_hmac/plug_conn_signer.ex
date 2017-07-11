@@ -48,7 +48,6 @@ defmodule NcsaHmac.PlugConnSigner do
   the signature. GET request must be canoncalized correctly using only the base path
   and ignoring both the query string and params that Plug.Conn adds when it
   parses the query_string.
-  TODO: Consider adding HMAC signing support for HEAD and DELETE requests.
   """
   def canonicalize_conn(conn) do
     NcsaHmac.Canonical.string(

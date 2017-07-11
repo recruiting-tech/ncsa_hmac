@@ -1,7 +1,7 @@
 defmodule NcsaHmac.Canonical do
 
   @moduledoc """
-  The Canonical module provides a single public function to generate the canoical string.
+  The Canonical module provides a single public function to generate the canonical string.
   """
 
   @doc """
@@ -9,13 +9,14 @@ defmodule NcsaHmac.Canonical do
   the signature. GET request must be canoncalized correctly using only the base path
   and ignoring both the query string and params that Plug.Conn adds when it
   parses the query_string.
+  TODO: Consider adding HMAC signing support for HEAD and DELETE requests.
   """
   def string(method, path, date, content_digest \\ "", content_type \\ "application/json")
   def string(method, path, date, content_digest, content_type) do
     Enum.join([
       String.upcase(method),
       content_type,
-      content_digest(method, content_digest) ,
+      content_digest(method, content_digest),
       date,
       String.downcase(path)
       ], "\n")
