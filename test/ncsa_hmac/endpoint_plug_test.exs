@@ -160,6 +160,46 @@ defmodule NcsaHmac.EndpointPlugTest do
       assert conn.assigns.authorized
       assert conn.private.auth_id == "auth_id_valid"
     end
+
+    test "The opts[:repo] is used first." do
+      Application.delete_env :ncsa_hmac, :repo
+      opts = default_opts(%{mount: ["some", "path", "with"], model: ApiKey, repo: Repo})
+
+      params = %{"post_id" => 1}
+      request_details = %{"method" => "POST", "date" => @date, "content-type" => "application/json", "path" => "/some/path/with/additional/params", "params" => params}
+
+      signature = NcsaHmac.Signer.sign(request_details, "auth_id_valid", "signing_key")
+      conn = conn(:post, "/some/path/with/additional/params", params)
+      |> Plug.Conn.put_req_header("content-type", @content_type)
+      |> Plug.Conn.put_req_header("date", @date)
+      |> Plug.Conn.put_req_header("authorization", signature)
+
+      conn = NcsaHmac.EndpointPlug.call(conn, opts)
+      refute conn.status == 401
+      assert conn.assigns.authorized
+      assert conn.private.auth_id == "auth_id_valid"
+      Application.put_env :ncsa_hmac, :repo, Repo
+    end
+
+    test "The opts[:repo] overrides the Application repo." do
+      Application.put_env :ncsa_hmac, :repo, NcsaHmac.Signer
+      opts = default_opts(%{mount: ["some", "path", "with"], model: ApiKey, repo: Repo})
+
+      params = %{"post_id" => 1}
+      request_details = %{"method" => "POST", "date" => @date, "content-type" => "application/json", "path" => "/some/path/with/additional/params", "params" => params}
+
+      signature = NcsaHmac.Signer.sign(request_details, "auth_id_valid", "signing_key")
+      conn = conn(:post, "/some/path/with/additional/params", params)
+      |> Plug.Conn.put_req_header("content-type", @content_type)
+      |> Plug.Conn.put_req_header("date", @date)
+      |> Plug.Conn.put_req_header("authorization", signature)
+
+      conn = NcsaHmac.EndpointPlug.call(conn, opts)
+      refute conn.status == 401
+      assert conn.assigns.authorized
+      assert conn.private.auth_id == "auth_id_valid"
+      Application.put_env :ncsa_hmac, :repo, Repo
+    end
   end
 
   defp default_opts(opts) do

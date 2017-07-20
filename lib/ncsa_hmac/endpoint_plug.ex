@@ -81,7 +81,7 @@ defmodule NcsaHmac.EndpointPlug do
   end
 
   defp fetch_resource(conn, opts) do
-    repo = Application.get_env(:ncsa_hmac, :repo)
+    repo = opts[:repo] || Application.get_env(:ncsa_hmac, :repo)
     map_args = get_resource_args(conn, opts)
     conn.assigns
     |> Map.fetch(resource_name(opts)) # check if a resource is already loaded at the key
