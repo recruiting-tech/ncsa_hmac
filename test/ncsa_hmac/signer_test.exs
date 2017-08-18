@@ -25,6 +25,14 @@ defmodule NcsaHmac.SignerTest do
     assert signature == auth_string
   end
 
+  test "override the service name" do
+    auth_string = "TEST.NAME " <> @key_id <> ":" <> @expected_sha512_signature
+    request_details = Map.put_new(@request_details, "service-name", "TEST.NAME")
+
+    signature =  Signer.sign(request_details, @key_id, @signing_key)
+    assert signature == auth_string
+  end
+
   test "handle urls params as a string" do
     auth_string = "NCSA.HMAC " <> @key_id <> ":" <> "WL2jpuZvzq/tACXys9Fj2P/DDKqMtQaHG89Dh4fRI+m1R6aHfyOQqNppZY4Dam06+XRDv8fPT5O3vqIaAnM+pg=="
     request_details = Map.update!(@request_details, "params", fn(_) -> "abc=def" end )

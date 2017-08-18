@@ -35,7 +35,11 @@ defmodule NcsaHmac.Signer do
   def sign(request_details, key_id, key_secret, hash_type \\ @default_hash) do
     validate_key!(key_id, "key_id")
     validate_key!(key_secret, "key_secret")
-    "#{@service_name} #{key_id}:#{signature(request_details, key_secret, hash_type)}"
+    authorization_string(
+      key_id,
+      signature(request_details, key_secret, hash_type),
+      service_name(request_details["service-name"])
+    )
   end
 
   @doc """
@@ -90,6 +94,14 @@ defmodule NcsaHmac.Signer do
     end
   end
   def normalize_parameters(params), do: params
+
+  defp authorization_string(key_id, signature, service_name) do
+    "#{service_name} #{key_id}:#{signature}"
+  end
+
+  defp service_name(""), do: @service_name
+  defp service_name(nil), do: @service_name
+  defp service_name(service_name), do: service_name
 
   defp content_digest(""), do: ""
   defp content_digest(params) when params == %{}, do: ""
