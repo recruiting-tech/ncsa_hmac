@@ -1,5 +1,4 @@
 defmodule NcsaHmac.Plug do
-  import Ecto.Query
   import Keyword, only: [has_key?: 2]
 
   @moduledoc """

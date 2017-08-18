@@ -156,7 +156,7 @@ defmodule NcsaHmac.EndpointPlug do
 
   defp match_mount?(conn, opts) do
     path = conn.path_info
-    mount = Dict.get(opts, :mount)
+    mount = Map.get(opts, :mount)
     mount == Enum.slice(path, 0, Enum.count(mount))
   end
 end
