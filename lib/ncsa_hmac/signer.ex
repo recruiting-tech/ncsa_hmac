@@ -3,7 +3,7 @@ defmodule NcsaHmac.Signer do
   @service_name "NCSA.HMAC"
 
   @moduledoc """
-  The Signer module provides functions for signing a conn (web request) with a cryptographic algorithm.
+  The Signer module provides functions for generating a cryptographic hash based on the details of a web request.
   """
 
   @doc """
@@ -12,8 +12,8 @@ defmodule NcsaHmac.Signer do
   Required paramters:
 
   * `:request_details` - A Map of the key elements from the request that are
-  needed to compute a correct signature, must include: METHOD, PATH, PARAMS,
-  and CONTENT-TYPE, optional values: DATE
+  needed to compute a correct signature, required key-values: "method", "path", "params",
+  and "content-type", optional values: "date", "service_name"
   * `:key_id` - The database id of the record. This is also the publically
   visible and unencrypted piece of the request signature
   * `:key_secret` - The signing_key or sercret_key that is used to sign the request.
@@ -24,10 +24,10 @@ defmodule NcsaHmac.Signer do
   Optional opts:
 
   * `:hash_type` - Specifies the cryptographic hash function to use when computing
-  the signature.
+  the signature, defaults to :sha512.
 
   Set the signature signature string which will be added to the `Authorization`
-  header. Authorization string take the form:
+  header. Authorization string takes the form:
   'NCSA.HMAC auth_id:base64_encoded_cryptograhic_signature'
 
   """

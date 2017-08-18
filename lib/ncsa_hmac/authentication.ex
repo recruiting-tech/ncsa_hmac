@@ -54,8 +54,12 @@ defmodule NcsaHmac.Authentication do
     end
   end
 
+  @doc """
+  Parse and extract the auth_id from the authorization signature.
+
+  """
   def auth_id(conn) do
-    [auth_id, _] = conn
+    [auth_id, _hash] = conn
     |> Plug.Conn.get_req_header("authorization")
     |> Enum.at(0)
     |> unpack_signature!
