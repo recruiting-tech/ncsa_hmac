@@ -13,7 +13,7 @@ defmodule NcsaHmac.Signer do
 
   * `:request_details` - A Map of the key elements from the request that are
   needed to compute a correct signature, required key-values: "method", "path", "params",
-  and "content-type", optional values: "date", "service_name"
+  and "content-type", optional values: "date", "service-name"
   * `:key_id` - The database id of the record. This is also the publically
   visible and unencrypted piece of the request signature
   * `:key_secret` - The signing_key or sercret_key that is used to sign the request.
@@ -26,10 +26,17 @@ defmodule NcsaHmac.Signer do
   * `:hash_type` - Specifies the cryptographic hash function to use when computing
   the signature, defaults to :sha512.
 
+  Request Details:
+  * `:method` - The HTTP verb used for the request, GET, POST, PUT, etc.
+  * `:path` - The http request path. (Everything between the hostname and the query params)
+  * `:params` - The body of the request. (Excludes query string parameters)
+  * `:content-type` - The header content-type string, defaults to "application/json"
+  * `:service-name` - An arbitrary string appended to the the beginning of the authorization signature. Defaults to "NCSA.HMAC"
+
   Set the signature signature string which will be added to the `Authorization`
   header. Authorization string takes the form:
   'NCSA.HMAC auth_id:base64_encoded_cryptograhic_signature'
-
+  or 'SERVICE.NAME auth_id:base64_encoded_cryptograhic_signature'
   """
 
   def sign(request_details, key_id, key_secret, hash_type \\ @default_hash) do
