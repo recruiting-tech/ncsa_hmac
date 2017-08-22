@@ -1,17 +1,22 @@
 # NcsaHmac
 
-This is an elixir implementation of HMAC SHA request signing that takes fair amount of influence from the ey-hmac gem:
+HMAC (Hashed Message Authentication Code) is a protocol to authenticate web requests with the use of a shared secret key. HMAC Authentication makes use of a secret that is shared between the server and the client to generate a cryptographic signature for any arbitrary web request. The HMAC can be used to assert that:
+
+1. the request message comes from a known client who shares the secret key
+2. the message has not been altered by a Man in the Middle (MitM) attack while in flight
+3. the current request has not expired
+
+This package is an elixir implementation of HMAC SHA request signing that takes fair amount of influence from the ey-hmac gem:
 https://github.com/engineyard/hmac
 
 This is not a direct port of the Engine Yard gem, but it follows many of the same implementation choices and uses the same request canonicalization methodology.
 
-Important Elixir reference points for this project were erlang-hmac-sha:
-https://github.com/hypernumbers/erlang-hmac-sha
-and canary:
-https://github.com/cpjk/canary
+Important Elixir reference points for this project:
 
-In particular, the canary package was excellent guidance for how to inject the
-Repo as a dependency of the project and make testing possible.
+  * erlang-hmac-sha https://github.com/hypernumbers/erlang-hmac-sha
+  * canary https://github.com/cpjk/canary
+
+In particular, the canary package was excellent guidance for how to inject the Repo as a dependency of the project and make testing possible.
 
 ## Usage
 
