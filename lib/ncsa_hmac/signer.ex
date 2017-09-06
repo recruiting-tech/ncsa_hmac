@@ -35,8 +35,8 @@ defmodule NcsaHmac.Signer do
 
   Set the signature signature string which will be added to the `Authorization`
   header. Authorization string takes the form:
-  'NCSA.HMAC auth_id:base64_encoded_cryptograhic_signature'
-  or 'SERVICE.NAME auth_id:base64_encoded_cryptograhic_signature'
+  'NCSA.HMAC auth_id:base64_encoded_cryptographic_signature'
+  or 'SERVICE.NAME auth_id:base64_encoded_cryptographic_signature'
   """
 
   def sign(request_details, key_id, key_secret, hash_type \\ @default_hash) do
