@@ -1,5 +1,4 @@
 defmodule NcsaHmac.Plug do
-  import Ecto.Query
   import Keyword, only: [has_key?: 2]
 
   @moduledoc """
@@ -221,7 +220,7 @@ defmodule NcsaHmac.Plug do
     do: %{conn | assigns: Map.put(conn.assigns, resource_name(opts), nil)}
 
   defp fetch_resource(conn, opts) do
-    repo = Application.get_env(:ncsa_hmac, :repo)
+    repo = opts[:repo] || Application.get_env(:ncsa_hmac, :repo)
     map_args = get_map_args(conn, opts)
     conn.assigns
     |> Map.fetch(resource_name(opts)) # check if a resource is already loaded at the key

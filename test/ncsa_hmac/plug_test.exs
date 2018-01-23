@@ -369,4 +369,20 @@ defmodule NcsaHmac.PlugTest do
       |> Plug.Conn.assign(:api_key, nil)
     assert load_and_authorize_resource(conn, opts) == expected
   end
+
+  test "support setting the repo in the opts" do
+    Application.delete_env :ncsa_hmac, :repo
+    opts = [model: ApiKey, only: :some_action, repo: Repo]
+    req_signature = NcsaHmac.Signer.sign(%{"params" => %{}, "method" => "post", "date" => @date, "path" => "/api/auth", "content-type" => "application/json"}, @key_id, @signing_key)
+    conn = conn(:post, "/api/auth", %{})
+      |> Plug.Conn.assign(:ncsa_hmac_action, :some_action)
+      |> Plug.Conn.assign(:api_key, %ApiKey{id: 1, auth_id: @key_id, signing_key: @signing_key})
+      |> Plug.Conn.put_req_header("content-type", @content_type)
+      |> Plug.Conn.put_req_header("date", @date)
+      |> Plug.Conn.put_req_header("authorization", req_signature)
+    expected = Plug.Conn.assign(conn, :authorized, true)
+      |> Plug.Conn.assign(:api_key, nil)
+    assert load_and_authorize_resource(conn, opts) == expected
+    Application.put_env :ncsa_hmac, :repo, Repo
+  end
 end

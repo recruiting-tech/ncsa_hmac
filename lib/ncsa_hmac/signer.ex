@@ -3,7 +3,7 @@ defmodule NcsaHmac.Signer do
   @service_name "NCSA.HMAC"
 
   @moduledoc """
-  The Signer module provides functions for signing a conn (web request) with a cryptographic algorithm.
+  The Signer module provides functions for generating a cryptographic hash based on the details of a web request.
   """
 
   @doc """
@@ -12,8 +12,8 @@ defmodule NcsaHmac.Signer do
   Required paramters:
 
   * `:request_details` - A Map of the key elements from the request that are
-  needed to compute a correct signature, must include: METHOD, PATH, PARAMS,
-  and CONTENT-TYPE, optional values: DATE
+  needed to compute a correct signature, required key-values: "method", "path", "params",
+  and "content-type", optional values: "date", "service-name"
   * `:key_id` - The database id of the record. This is also the publically
   visible and unencrypted piece of the request signature
   * `:key_secret` - The signing_key or sercret_key that is used to sign the request.
@@ -24,18 +24,29 @@ defmodule NcsaHmac.Signer do
   Optional opts:
 
   * `:hash_type` - Specifies the cryptographic hash function to use when computing
-  the signature.
+  the signature, defaults to :sha512.
+
+  Request Details:
+  * `:method` - The HTTP verb used for the request, GET, POST, PUT, etc.
+  * `:path` - The http request path. (Everything between the hostname and the query params)
+  * `:params` - The body of the request. (Excludes query string parameters)
+  * `:content-type` - The header content-type string, defaults to "application/json"
+  * `:service-name` - An arbitrary string appended to the the beginning of the authorization signature. Defaults to "NCSA.HMAC"
 
   Set the signature signature string which will be added to the `Authorization`
-  header. Authorization string take the form:
-  'NCSA.HMAC auth_id:base64_encoded_cryptograhic_signature'
-
+  header. Authorization string takes the form:
+  'NCSA.HMAC auth_id:base64_encoded_cryptographic_signature'
+  or 'SERVICE.NAME auth_id:base64_encoded_cryptographic_signature'
   """
 
   def sign(request_details, key_id, key_secret, hash_type \\ @default_hash) do
     validate_key!(key_id, "key_id")
     validate_key!(key_secret, "key_secret")
-    "#{@service_name} #{key_id}:#{signature(request_details, key_secret, hash_type)}"
+    authorization_string(
+      key_id,
+      signature(request_details, key_secret, hash_type),
+      service_name(request_details["service-name"])
+    )
   end
 
   @doc """
@@ -90,6 +101,14 @@ defmodule NcsaHmac.Signer do
     end
   end
   def normalize_parameters(params), do: params
+
+  defp authorization_string(key_id, signature, service_name) do
+    "#{service_name} #{key_id}:#{signature}"
+  end
+
+  defp service_name(""), do: @service_name
+  defp service_name(nil), do: @service_name
+  defp service_name(service_name), do: service_name
 
   defp content_digest(""), do: ""
   defp content_digest(params) when params == %{}, do: ""

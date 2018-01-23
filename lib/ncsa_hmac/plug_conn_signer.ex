@@ -1,7 +1,6 @@
 defmodule NcsaHmac.PlugConnSigner do
   @default_hash :sha512
   @service_name "NCSA.HMAC"
-  @authorization_regexp ~r/\w+ ([^:]+):(.+)$/
 
   @moduledoc """
   The Signer module provides functions for signing a conn (web request) with a cryptographic algorithm.
@@ -93,7 +92,7 @@ defmodule NcsaHmac.PlugConnSigner do
 
   defp set_header_date(conn) do
     case get_header_value(conn, "date") do
-      [] -> Plug.Conn.put_req_header(conn, "date", set_date)
+      [] -> Plug.Conn.put_req_header(conn, "date", set_date())
       _ -> conn
     end
   end

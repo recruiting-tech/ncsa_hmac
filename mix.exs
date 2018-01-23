@@ -40,6 +40,6 @@ defmodule NcsaHmac.Mixfile do
 
   defp release_version do
     version = File.read('RELEASE_VERSION')
-    String.strip(elem(version,1))
+    String.trim(elem(version,1))
   end
 end

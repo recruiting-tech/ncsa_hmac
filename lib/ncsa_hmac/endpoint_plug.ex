@@ -20,6 +20,7 @@ defmodule NcsaHmac.EndpointPlug do
   request path up to the mount list. This will greedily match all methods and routes
   with additional path parameters. If the conn.path_info list does not match the opts:mount
   list, the conn will be returned to the endpoint for further processing.
+  TODO: upgrade to elixir 1.5 and use the @impl annotation
   """
   def call(conn, opts) do
     case match_mount?(conn, opts) do
@@ -155,7 +156,7 @@ defmodule NcsaHmac.EndpointPlug do
 
   defp match_mount?(conn, opts) do
     path = conn.path_info
-    mount = Dict.get(opts, :mount)
+    mount = Map.get(opts, :mount)
     mount == Enum.slice(path, 0, Enum.count(mount))
   end
 end

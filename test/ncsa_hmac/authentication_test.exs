@@ -14,7 +14,6 @@ defmodule NcsaHmac.AuthenticationTest do
   alias NcsaHmac.Authentication
 
   @key_id "auth_id1"
-  @signing_key "base64_signing_key"
   @target_body %{"auth_id" => "auth_id1"}
   @expected_sha512_signature "1UldRTPlTEkh1uDhVNvpB+XFgeM0OCN8uzx8+F3Xfg2QmBi02TGQI4Y58zk0AfqY20ds7NHOSWrOojORpBcG3w=="
   @date "Fri, 22 Jul 2016"
