@@ -2,12 +2,14 @@ defmodule NcsaHmac.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :ncsa_hmac,
-     version: release_version(),
-     elixir: "~> 1.0",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps()]
+    [
+      app: :ncsa_hmac,
+      version: release_version(),
+      elixir: "~> 1.0",
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      deps: deps()
+    ]
   end
 
   # Configuration for the OTP application
@@ -40,7 +42,7 @@ defmodule NcsaHmac.Mixfile do
   end
 
   defp release_version do
-    version = File.read('RELEASE_VERSION')
-    String.trim(elem(version,1))
+    {:ok, version} = File.read('RELEASE_VERSION')
+    String.trim(version)
   end
 end

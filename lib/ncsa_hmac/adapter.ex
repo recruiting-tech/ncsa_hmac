@@ -135,14 +135,16 @@ defmodule NcsaHmac.Adapter do
 
   def sign!(method, url, headers, opts) do
     uri = parse(url)
-    headers = process_headers(headers)
+    headers
+    |> process_headers()
     |> Map.put("content-digest", "")
     |> set_auth_header(method, uri, opts)
   end
 
   def sign!(method, url, body, headers, opts) do
     uri = parse(url)
-    headers = process_headers(headers)
+    headers
+    |> process_headers()
     |> set_content_digest(body)
     |> set_auth_header(method, uri, opts)
   end
@@ -217,7 +219,7 @@ defmodule NcsaHmac.Adapter do
 
   defp set_header_date(headers) do
     case headers["date"] do
-      nil -> Map.put(headers, "date", set_date)
+      nil -> Map.put(headers, "date", set_date())
       _ -> headers
     end
   end
@@ -230,13 +232,6 @@ defmodule NcsaHmac.Adapter do
   defp set_header_content_type(headers) do
     case headers["content-type"] do
       nil -> Map.put(headers, "content-type", "application/json")
-      _ -> headers
-    end
-  end
-
-  defp set_header_content_digest(headers) do
-    case headers["date"] do
-      nil -> Map.put(headers, "content-digest", "application/json")
       _ -> headers
     end
   end
