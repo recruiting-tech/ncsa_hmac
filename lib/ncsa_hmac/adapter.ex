@@ -14,15 +14,18 @@ defmodule NcsaHmac.Adapter do
     requests, any query string appended to the end of the URL will be ignored
     in the signing process. This makes the query string succeptible to
     man-in-the-middle attacks.
+    Function Arguments and Options
     params:
-      * `:url` - REQUIRED, Must be fully qualified and compiant with `URI.parse`
+      * `:url` - REQUIRED, Must be fully qualified and compliant with `URI.parse`
       * `:headers` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
+      * `:body` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
+        Will be encoded to JSON using the JSON package.
       * `:opts` - REQUIRED, A keyword list (orddict in erlang) or atom map.
-        opts params:
-          * `:key_id` - REQUIRED, The non-secret id associated with the secret key
-          * `:key_secret` - REQUIRED, The secret key used to sign the canonicalized request.
-          * `:hash_type` - OPTIONAL, An atom representing the hash supported by the
-            Erlang :crypto library. Defaults to :sha512
+    opts params:
+      * `:key_id` - REQUIRED, The non-secret id associated with the secret key
+      * `:key_secret` - REQUIRED, The secret key used to sign the canonicalized request.
+      * `:hash_type` - OPTIONAL, An atom representing the hash supported by the
+        Erlang :crypto library. Defaults to :sha512
   """
   def get(url, headers \\ [], opts) do
     headers = sign!("GET", url, headers, opts)
@@ -31,15 +34,12 @@ defmodule NcsaHmac.Adapter do
 
   @doc """
     Sign HEAD requests with an HMAC authorization signature.
-    params:
-      * `:url` - REQUIRED, Must be fully qualified and compiant with `URI.parse`
-      * `:headers` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
-      * `:opts` - REQUIRED, A keyword list (orddict in erlang) or atom map.
-        opts params:
-          * `:key_id` - REQUIRED, The non-secret id associated with the secret key
-          * `:key_secret` - REQUIRED, The secret key used to sign the canonicalized request.
-          * `:hash_type` - OPTIONAL, An atom representing the hash supported by the
-            Erlang :crypto library. Defaults to :sha512
+
+    See Arguments and Options for a descrption of the parameters and
+    options for this function.
+
+    See Arguments and Options for a descrption of the parameters and
+    options for this function.
   """
   def head(url, headers \\ [], opts) do
     headers = sign!("HEAD", url, headers, opts)
@@ -48,15 +48,9 @@ defmodule NcsaHmac.Adapter do
 
   @doc """
     Sign OPTIONS requests with an HMAC authorization signature.
-    params:
-      * `:url` - REQUIRED, Must be fully qualified and compiant with `URI.parse`
-      * `:headers` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
-      * `:opts` - REQUIRED, A keyword list (orddict in erlang) or atom map.
-        opts params:
-          * `:key_id` - REQUIRED, The non-secret id associated with the secret key
-          * `:key_secret` - REQUIRED, The secret key used to sign the canonicalized request.
-          * `:hash_type` - OPTIONAL, An atom representing the hash supported by the
-            Erlang :crypto library. Defaults to :sha512
+
+    See Arguments and Options for a descrption of the parameters and
+    options for this function.
   """
   def options(url, headers \\ [], opts) do
     headers = sign!("OPTIONS", url, headers, opts)
@@ -65,15 +59,9 @@ defmodule NcsaHmac.Adapter do
 
   @doc """
     Sign DELETE requests with an HMAC authorization signature.
-    params:
-      * `:url` - REQUIRED, Must be fully qualified and compiant with `URI.parse`
-      * `:headers` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
-      * `:opts` - REQUIRED, A keyword list (orddict in erlang) or atom map.
-        opts params:
-          * `:key_id` - REQUIRED, The non-secret id associated with the secret key
-          * `:key_secret` - REQUIRED, The secret key used to sign the canonicalized request.
-          * `:hash_type` - OPTIONAL, An atom representing the hash supported by the
-            Erlang :crypto library. Defaults to :sha512
+
+    See Arguments and Options for a descrption of the parameters and
+    options for this function.
   """
   def delete(url, headers \\ [], opts) do
     headers = sign!("DELETE", url, headers, opts)
@@ -82,17 +70,9 @@ defmodule NcsaHmac.Adapter do
 
   @doc """
     Sign POST requests with an HMAC authorization signature.
-    params:
-      * `:url` - REQUIRED, Must be fully qualified and compiant with `URI.parse`
-      * `:body` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
-        Will be encoded to JSON using the JSON package.
-      * `:headers` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
-      * `:opts` - REQUIRED, A keyword list (orddict in erlang) or atom map.
-        opts params:
-          * `:key_id` - REQUIRED, The non-secret id associated with the secret key
-          * `:key_secret` - REQUIRED, The secret key used to sign the canonicalized request.
-          * `:hash_type` - OPTIONAL, An atom representing the hash supported by the
-            Erlang :crypto library. Defaults to :sha512
+
+    See Arguments and Options for a descrption of the parameters and
+    options for this function.
   """
   def post(url, body, headers \\ [], opts) do
     headers = sign!("POST", url, body, headers, opts)
@@ -102,17 +82,9 @@ defmodule NcsaHmac.Adapter do
 
   @doc """
     Sign PUT requests with an HMAC authorization signature.
-    params:
-      * `:url` - REQUIRED, Must be fully qualified and compiant with `URI.parse`
-      * `:body` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
-        Will be encoded to JSON using the JSON package.
-      * `:headers` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
-      * `:opts` - REQUIRED, A keyword list (orddict in erlang) or atom map.
-        opts params:
-          * `:key_id` - REQUIRED, The non-secret id associated with the secret key
-          * `:key_secret` - REQUIRED, The secret key used to sign the canonicalized request.
-          * `:hash_type` - OPTIONAL, An atom representing the hash supported by the
-            Erlang :crypto library. Defaults to :sha512
+
+    See Arguments and Options for a descrption of the parameters and
+    options for this function.
   """
   def put(url, body, headers \\ [], opts) do
     headers = sign!("PUT", url, body, headers, opts)
@@ -122,17 +94,9 @@ defmodule NcsaHmac.Adapter do
 
   @doc """
     Sign PATCH requests with an HMAC authorization signature.
-    params:
-      * `:url` - REQUIRED, Must be fully qualified and compiant with `URI.parse`
-      * `:body` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
-        Will be encoded to JSON using the JSON package.
-      * `:headers` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
-      * `:opts` - REQUIRED, A keyword list (orddict in erlang) or atom map.
-        opts params:
-          * `:key_id` - REQUIRED, The non-secret id associated with the secret key
-          * `:key_secret` - REQUIRED, The secret key used to sign the canonicalized request.
-          * `:hash_type` - OPTIONAL, An atom representing the hash supported by the
-            Erlang :crypto library. Defaults to :sha512
+
+    See Arguments and Options for a descrption of the parameters and
+    options for this function.
   """
   def patch(url, body, headers \\ [], opts) do
     headers = sign!("PATCH", url, body, headers, opts)
@@ -159,22 +123,14 @@ defmodule NcsaHmac.Adapter do
   Parameters:
     * `:method` - A String in CAPS representing the HTTP method.
       EG GET or PATCH
-    * `:url` - REQUIRED, Must be fully qualified and compiant with `URI.parse`
+    * `:url` - REQUIRED, Must be fully qualified and compliant with `URI.parse`
     * `:body` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
       Will be encoded to JSON using the JSON package.
     * `:headers` - OPTIONAL, A keyword list (orddict in erlang) or atom map.
     * `:opts` - REQUIRED, A keyword list (orddict in erlang) or atom map.
 
 
-  opts paramters:
-    * `:key_id` - REQUIRED, The database id of the record. This is also the publically
-    visible and unencrypted piece of the request signature
-    * `:key_secret` - REQUIRED, The signing_key or sercret_key that is used to sign the request.
-    This is the shared secret that must be known to both the requesting server
-    as well as the receiveing server. The signing_key should be kept securely and
-    not shared publically.
-    * `:hash_type` - OPTIONAL, Specifies the cryptographic hash function to use when computing
-    the signature.
+    See Options for a descrption of the options for this function.
   """
 
   def sign!(method, url, headers, opts) do
