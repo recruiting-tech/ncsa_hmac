@@ -34,8 +34,7 @@ defmodule NcsaHmac.Mixfile do
       {:plug, "~> 1.0"},
       {:httpoison, "~> 1.0"},
       {:bypass, "~> 1.0", only: :test},
-      {:earmark, ">= 0.0.0", only: :dev},
-      {:ex_doc, "~> 0.7", only: :dev},
+      {:ex_doc, "~> 0.19", only: :dev},
       {:credo, "~> 0.4", only: :dev}
     ]
   end
