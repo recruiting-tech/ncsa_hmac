@@ -95,7 +95,7 @@ defmodule NcsaHmac.PlugConnSignerTest do
     conn = Plug.Conn.put_req_header(conn, "date", date)
     canonical = PlugConnSigner.canonicalize_conn(conn)
     assert canonical == "HEAD" <> "\n"
-      <> "multipart/mixed; charset: utf-8" <> "\n"
+      <> "multipart/mixed; boundary=plug_conn_test" <> "\n"
       <> @target_md5_hash <> "\n"
       <> date <> "\n"
       <> "/api/auth"
@@ -105,9 +105,10 @@ defmodule NcsaHmac.PlugConnSignerTest do
     conn = conn(:get, "/api/auth?queryString=something", @target_body)
     date = "1234"
     conn = Plug.Conn.put_req_header(conn, "date", date)
+    |> Plug.Conn.put_req_header("content-type", "application/json")
     canonical = PlugConnSigner.canonicalize_conn(conn)
     assert canonical == "GET" <> "\n"
-      <> "multipart/mixed; charset: utf-8" <> "\n"
+      <> "application/json" <> "\n"
       <> "\n"
       <> date <> "\n"
       <> "/api/auth"
@@ -158,11 +159,12 @@ defmodule NcsaHmac.PlugConnSignerTest do
   end
 
   test "computed signature matches when content_type is not explicitly set " do
-    expected_signature = "/G3kxtRWP81YpO1z2DlhZ8ETDtGmIMGOMXEQ1wmpFygEfYLwHvvFTjyIZ9OMl65IFd73ypeyWf3bPxWZ26swkA=="
-    default_content_type = "multipart/mixed; charset: utf-8"
+    expected_signature = "b0epQjAD/E2yjG9FXN8K2dtRbtSds1Re3eJB3CHt+JajoSZC6mExbiE85Oj9v2yNRURE3uIIo0ltVh0hOZZ7dQ=="
+    default_content_type = "multipart/mixed; boundary=plug_conn_test"
     conn = conn(:post, "/api/auth", @target_body)
     assert Plug.Conn.get_req_header(conn, "content-type") == [default_content_type]
     conn = Plug.Conn.put_req_header(conn, "date", @signature_params["date"])
+
     signature = PlugConnSigner.signature(conn, @signing_key)
     assert signature == expected_signature
   end

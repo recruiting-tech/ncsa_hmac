@@ -2,19 +2,21 @@ defmodule NcsaHmac.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :ncsa_hmac,
-     version: release_version(),
-     elixir: "~> 1.0",
-     build_embedded: Mix.env == :prod,
-     start_permanent: Mix.env == :prod,
-     deps: deps()]
+    [
+      app: :ncsa_hmac,
+      version: release_version(),
+      elixir: "~> 1.0",
+      build_embedded: Mix.env() == :prod,
+      start_permanent: Mix.env() == :prod,
+      deps: deps()
+    ]
   end
 
   # Configuration for the OTP application
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :ecto, :timex, :json]]
+    [applications: [:logger, :ecto, :timex, :json, :plug, :httpoison]]
   end
 
   # Dependencies can be Hex packages:
@@ -32,14 +34,15 @@ defmodule NcsaHmac.Mixfile do
       {:timex, "~> 3.0"},
       {:json, "~> 0.3.0"},
       {:plug, "~> 1.0"},
-      {:earmark, ">= 0.0.0", only: :dev},
-      {:ex_doc, "~> 0.7", only: :dev},
+      {:httpoison, "~> 1.0"},
+      {:bypass, "~> 1.0", only: :test},
+      {:ex_doc, "~> 0.19", only: :dev},
       {:credo, "~> 0.4", only: :dev}
     ]
   end
 
   defp release_version do
-    version = File.read('RELEASE_VERSION')
-    String.trim(elem(version,1))
+    {:ok, version} = File.read('RELEASE_VERSION')
+    String.trim(version)
   end
 end
