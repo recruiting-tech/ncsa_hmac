@@ -14,7 +14,7 @@ defmodule NcsaHmac.Mixfile do
   #
   # Type "mix help compile.app" for more information
   def application do
-    [applications: [:logger, :ecto, :timex, :json]]
+    [applications: [:logger, :ecto, :timex, :json, :plug, :httpoison]]
   end
 
   # Dependencies can be Hex packages:
@@ -32,6 +32,8 @@ defmodule NcsaHmac.Mixfile do
       {:timex, "~> 3.0"},
       {:json, "~> 0.3.0"},
       {:plug, "~> 1.0"},
+      {:httpoison, "~> 1.0"},
+      {:bypass, "~> 1.0", only: :test},
       {:earmark, ">= 0.0.0", only: :dev},
       {:ex_doc, "~> 0.7", only: :dev},
       {:credo, "~> 0.4", only: :dev}
