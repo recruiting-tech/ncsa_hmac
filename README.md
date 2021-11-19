@@ -106,7 +106,7 @@ The package can be installed as:
 
     ```
     def deps do
-      [{:ncsa_hmac, git: "git@github.com:NCSAAthleticRecruiting/ncsa_hmac.git"}]
+      [{:ncsa_hmac, git: "git@github.com:recruiting-tech/ncsa_hmac.git"}]
     end
     ```
 
