@@ -56,21 +56,16 @@ defmodule NcsaHmac.PlugConnSigner do
     IO.inspect(get_header_value(conn, "date"))
     IO.inspect(content_digest(conn, get_request_params(conn)))
     IO.inspect(get_header_value(conn, "content-type"))
-    IO.inspect(NcsaHmac.Canonical.string(
-      conn.method,
-      conn.request_path,
-      get_header_value(conn, "date"),
-      content_digest(conn, get_request_params(conn)),
-      get_header_value(conn, "content-type")
-    ))
-    NcsaHmac.Canonical.string(
+    canonical_string = NcsaHmac.Canonical.string(
       conn.method,
       conn.request_path,
       get_header_value(conn, "date"),
       content_digest(conn, get_request_params(conn)),
       get_header_value(conn, "content-type")
     )
+    IO.inspect(canonical_string)
     IO.puts("-------------------------")
+    canonical_string
   end
 
   @doc """
