@@ -53,7 +53,7 @@ defmodule NcsaHmac.PlugConnSigner do
     IO.puts("--- canonicalize_conn ---")
     IO.inspect(conn.method)
     IO.inspect(conn.request_path)
-    IO.inspect(get_header_value(conn, "date"),)
+    IO.inspect(get_header_value(conn, "date"))
     IO.inspect(content_digest(conn, get_request_params(conn)))
     IO.inspect(get_header_value(conn, "content-type"))
     IO.inspect(NcsaHmac.Canonical.string(
