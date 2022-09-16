@@ -49,6 +49,20 @@ defmodule NcsaHmac.PlugConnSigner do
   parses the query_string.
   """
   def canonicalize_conn(conn) do
+    IO.puts("-------------------------")
+    IO.puts("--- canonicalize_conn ---")
+    IO.inspect(conn.method)
+    IO.inspect(conn.request_path)
+    IO.inspect(get_header_value(conn, "date"),)
+    IO.inspect(content_digest(conn, get_request_params(conn)))
+    IO.inspect(get_header_value(conn, "content-type"))
+    IO.inspect(NcsaHmac.Canonical.string(
+      conn.method,
+      conn.request_path,
+      get_header_value(conn, "date"),
+      content_digest(conn, get_request_params(conn)),
+      get_header_value(conn, "content-type")
+    ))
     NcsaHmac.Canonical.string(
       conn.method,
       conn.request_path,
@@ -56,6 +70,7 @@ defmodule NcsaHmac.PlugConnSigner do
       content_digest(conn, get_request_params(conn)),
       get_header_value(conn, "content-type")
     )
+    IO.puts("-------------------------")
   end
 
   @doc """

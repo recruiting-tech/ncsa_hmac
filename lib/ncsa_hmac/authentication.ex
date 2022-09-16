@@ -103,11 +103,20 @@ defmodule NcsaHmac.Authentication do
   end
 
   defp verify_signature!(conn, signature, signing_key) do
+    IO.puts("------------------------")
+    IO.puts("--- verify_signature ---")
+    IO.inspect(signature)
     valid_algorithm = Enum.reject(@accepted_algorithms, fn(algo) ->
+      IO.puts("--- verify_signature algo ---")
+      IO.inspect(algo)
+      IO.inspect(PlugConnSigner.signature(conn, signing_key, algo))
       signature != PlugConnSigner.signature(conn, signing_key, algo)
     end)
+    IO.puts("--- verify_signature final ---")
+
     #Calculate and compare the signature again, so we don't return true by default
     validate_signature(conn, signature, signing_key, valid_algorithm)
+    IO.puts("------------------------")
   end
 
   defp validate_signature(_, signature, _, []) do
